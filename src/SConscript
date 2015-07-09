@@ -1,0 +1,18 @@
+
+CC = 'clang'
+
+WARNINGS=" ".join([
+	'-Weverything'
+])
+
+ragel = Builder(action = 'ragel -G2 $SOURCE -o $TARGET',
+								suffix = '.c',
+								src_suffix = '.rl')
+
+env = Environment( CC=CC
+									,CCFLAGS=WARNINGS
+									,BUILDERS={'Ragel' : ragel} )
+
+env.Ragel('lm951lib.rl')
+
+env.Object('lm951lib.c')
