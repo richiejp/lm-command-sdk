@@ -14,3 +14,16 @@ Usage
 -----
 
 TODO
+
+Building
+--------
+
+The library itself has no dependencies, however it requires three tools to build it:
+
+- SCons: http://scons.org
+- Ragel: http://colm.net/open-source/ragel
+- A C compiler: e.g. gcc, clang, msvc
+
+To build the whole library from the Ragel sources up, run `scons -Q` in the root directory.
+
+*If you are not using Clang, set the `CC` variable in src/SConscript*
