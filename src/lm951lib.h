@@ -1,3 +1,6 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //Ragel state machine variables which we need to define
 struct ragelState {
@@ -19,3 +22,7 @@ struct ragelState {
 
 int lm951InputWith(struct ragelState *state, char *data, int length);
 int lm951Input(char *data, int length);
+
+#ifdef __cplusplus
+}
+#endif
