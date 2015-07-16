@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<struct id="lm951_parser" name="lm951_parser" xmlns="http://jessevdk.github.com/cldoc/1.0">
+  <brief> Parser state and callbacks</brief>
+  <doc>This structure encapsulates the parser's state machine's... uh, state.
+It also contains function pointers to callbacks which the user provides.
+This allows you to respond to events in the state machin as they happen.
+</doc>
+  <field id="lm951_parser::cs" name="cs">
+    <brief>The current state ID of the Ragel state machine</brief>
+    <type builtin="yes" name="int" />
+  </field>
+  <function id="lm951_inputs" name="lm951_inputs">
+    <brief> Parse the data</brief>
+    <doc>When data is received, feed it into this function. The <ref ref="lm951_parser#lm951_inputs::state">state</ref> argument
+will be updated accordingly to a new state based on the contents of
+<ref ref="lm951_parser#lm951_inputs::data">data</ref>.
+
+</doc>
+    <return>
+      <doc>TODO</doc>
+      <type builtin="yes" name="int" />
+    </return>
+    <argument id="lm951_inputs::state" name="state">
+      <doc>The current state and callbacks</doc>
+      <type name="lm951_parser" qualifier="*" ref="lm951_parser#lm951_parser" />
+    </argument>
+    <argument id="lm951_inputs::data" name="data">
+      <doc>The text/bytes to parse</doc>
+      <type builtin="yes" name="char" qualifier="*" />
+    </argument>
+    <argument id="lm951_inputs::length" name="length">
+      <doc>The length of the <ref ref="lm951_parser#lm951_inputs::data">data</ref></doc>
+      <type builtin="yes" name="int" />
+    </argument>
+  </function>
+</struct>

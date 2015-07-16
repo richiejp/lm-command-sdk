@@ -14,7 +14,7 @@ static struct lm951_parser sstate = {
 	write data;
 }%%
 
-int lm951_input(struct lm951_parser *state, char *data, int length)
+int lm951_inputs(struct lm951_parser *state, char *data, int length)
 {
 	if(length > 0){
 		char *p = data;
@@ -31,6 +31,6 @@ int lm951_input(struct lm951_parser *state, char *data, int length)
 }
 
 int lm951_input(char *data, int length){
-	return lm951_input(&sstate, data, length);
+	return lm951_inputs(&sstate, data, length);
 }
 

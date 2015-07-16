@@ -1,18 +1,53 @@
+#!Python
 
+import os
+
+#Clang is my prefered C compiler, however most common compilers should work
 CC = 'clang'
 
-WARNINGS=" ".join([
-	'-Weverything'
+#Get the clang analyzer compiler from the external environment
+if GetOption('analyze') is True:
+	CC = os.getenv('CC')
+
+print CC
+
+#Compiler arguments
+CCFLAGS = " ".join([
+	'-Weverything',    #Remove when not using clang
+	'-std=c11'
 ])
 
+#Register Ragel as a builder
 ragel = Builder(action = 'ragel -G2 $SOURCE -o $TARGET',
 								suffix = '.c',
 								src_suffix = '.rl')
+BUILDERS = { 'Ragel': ragel }
 
-env = Environment( CC=CC
-									,CCFLAGS=WARNINGS
-									,BUILDERS={'Ragel' : ragel} )
+print CC
 
-env.Ragel('lm951lib.rl')
+env = Environment(CC = CC, 
+								  CCFLAGS = CCFLAGS,
+									BUILDERS = BUILDERS)
 
-env.Object('lm951lib.c')
+#Import the Clang analyzer variables from the external environment
+if GetOption('analyze'):
+	env['ENV'].update(x for x in os.environ.items() if x[0].startswith('CCC_'))
+
+#Generate the API documentation using cldoc
+docs = env.Command( Dir('docs')
+									 ,'lm951lib.h'
+									 ,'cldoc generate -- $SOURCE --output $TARGET')
+env.Clean(docs, Glob('docs/*'))
+
+#Copy the documentation into the main docs folder
+copydocs = env.Command(Dir('../docs/API'), Dir('docs'), [
+														Delete(Dir('../docs/API'))
+													 ,Copy(Dir('../docs/API'), Dir('docs'))])
+env.Depends(copydocs, docs)
+
+#Build the library
+libc = env.Ragel('lm951lib.rl')
+lib = env.Object('lm951lib.c')
+
+#Set only the library as the default build target
+env.Default(lib)

@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<index xmlns="http://jessevdk.github.com/cldoc/1.0">
+  <struct name="lm951_parser" ref="lm951_parser#lm951_parser">
+    <brief> Parser state and callbacks</brief>
+  </struct>
+  <function id="lm951_input" name="lm951_input">
+    <return>
+      <type builtin="yes" name="int" />
+    </return>
+    <argument id="lm951_input::data" name="data">
+      <type builtin="yes" name="char" qualifier="*" />
+    </argument>
+    <argument id="lm951_input::length" name="length">
+      <type builtin="yes" name="int" />
+    </argument>
+  </function>
+</index>
