@@ -9,6 +9,7 @@ Directories
 - examples: Contains examples for various platforms
 - build: Contains the library files 
 - src: Contains the Ragel sources which the library is generated from
+- docs: Contains documentation, including a library overview and API reference
 
 Usage
 -----
