@@ -45,9 +45,21 @@ copydocs = env.Command(Dir('../docs/API'), Dir('docs'), [
 													 ,Copy(Dir('../docs/API'), Dir('docs'))])
 env.Depends(copydocs, docs)
 
+FILES = [
+	'lm951lib.c'
+]
+
+TEST_FILES = FILES[:]
+TEST_FILES.append('tests.c')
+
 #Build the library
 libc = env.Ragel('lm951lib.rl')
-lib = env.Object('lm951lib.c')
+lib = env.Object(FILES)
 
 #Set only the library as the default build target
 env.Default(lib)
+
+#Build the tests and run them on check command
+tests = env.Program('tests', TEST_FILES)
+check = env.Alias('check', tests, tests[0].abspath)
+env.Depends(check, tests)
