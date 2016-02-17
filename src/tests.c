@@ -40,7 +40,7 @@ TEST(parse_at_typo)
 {
 	char* ta = "ta";
 
-	return lm951_input(ta, 2) == LM951_OK;
+	return lm951_input(ta, 2) == LM951_ERROR;
 }
 
 int main(){
