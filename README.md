@@ -37,4 +37,9 @@ There are also some optional dependencies and build options:
 
 You can perform Clang's static analyses of the project with `scan-build -V --use-cc clang scons -Q --analyze`
 
+The test suite can be ran with `scons -Q check`.
 
+Amusements
+----------
+
+Install the xdot program on your sytem and run `ragel -Vp src/lm951lib.rl | xdot` from the SDK folder. This will show you an interactive graph of the state machine produced by Ragel for parsing the AT commands.
