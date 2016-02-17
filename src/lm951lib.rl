@@ -38,7 +38,7 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
 
 enum LM951_ISTATUS lm951_input(char *data, int length){
 	enum LM951_ISTATUS s = lm951_inputs(&sstate, data, length);
-	if(s == LM951_COMPLETED){
+	if(s == LM951_COMPLETED || s == LM951_ERROR){
 		sstate.cs = atcmd_start;
 	}
 	return s;

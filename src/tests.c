@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm951lib.h"
 
-#define TESTCOUNT 3
+#define TESTCOUNT 5
 
 //Copied from https://github.com/richiejp/roth/blob/master/src/tests.c
 //with permission of author :-)
@@ -43,6 +43,20 @@ TEST(parse_at_typo)
 	return lm951_input(ta, 2) == LM951_ERROR;
 }
 
+TEST(parse_at_partial)
+{
+	char* a = "a";
+
+	return lm951_input(a, 1) == LM951_OK;
+}
+//Continues from the last test, very naughty.
+TEST(parse_at_in_parts)
+{
+	char* t = "t";
+
+	return lm951_input(t, 1) == LM951_COMPLETED;
+}
+
 int main(){
 	int failed = 0;
 	char *name = "unnamed!";
@@ -52,6 +66,8 @@ int main(){
 	tests[0] = test_macro_test;
 	tests[1] = parse_at;
 	tests[2] = parse_at_typo;
+	tests[3] = parse_at_partial;
+	tests[4] = parse_at_in_parts;
 
 	for(int i = 0; i < TESTCOUNT; i++) {
 		if((*tests[i])(&name) == true) {
