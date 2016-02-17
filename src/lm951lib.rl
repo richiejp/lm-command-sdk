@@ -14,7 +14,9 @@ static struct lm951_parser sstate = {
 	write data;
 }%%
 
-int lm951_inputs(struct lm951_parser *state, char *data, int length)
+enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state, 
+				   char *data, 
+				   int length)
 {
 	if(length > 0){
 		char *p = data;
@@ -27,10 +29,17 @@ int lm951_inputs(struct lm951_parser *state, char *data, int length)
 
 	}
 
-	return state->cs >= atcmd_first_final;
+	if(state->cs >= atcmd_first_final){
+		return LM951_COMPLETED;
+	}else{
+		return LM951_OK;
+	}
 }
 
-int lm951_input(char *data, int length){
-	return lm951_inputs(&sstate, data, length);
+enum LM951_ISTATUS lm951_input(char *data, int length){
+	enum LM951_ISTATUS s = lm951_inputs(&sstate, data, length);
+	if(s == LM951_COMPLETED){
+		sstate.cs = 0;
+	}
+	return s;
 }
-
