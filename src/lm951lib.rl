@@ -17,7 +17,7 @@
 
 	at = [aA][tT];
 
-	commands = at '\n';
+	commands = at cr;
 
 	main := commands | responses;
 
