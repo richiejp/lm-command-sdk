@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm951lib.h"
 
-#define TESTCOUNT 5
+#define TESTCOUNT 6
 
 //Copied from https://github.com/richiejp/roth/blob/master/src/tests.c
 //with permission of author :-)
@@ -25,15 +25,15 @@ TEST(test_macro_test)
 
 TEST(parse_at)
 {
-	char* at = "at";
-	char* At = "At";
-	char* aT = "aT";
-	char* AT = "AT";
+	char* at = "at\n";
+	char* At = "At\n";
+	char* aT = "aT\n";
+	char* AT = "AT\n";
 
-	return lm951_input(at, 2) == LM951_COMPLETED
-		&& lm951_input(At, 2) == LM951_COMPLETED
-		&& lm951_input(aT, 2) == LM951_COMPLETED
-		&& lm951_input(AT, 2) == LM951_COMPLETED;
+	return lm951_input(at, 3) == LM951_COMPLETED
+		&& lm951_input(At, 3) == LM951_COMPLETED
+		&& lm951_input(aT, 3) == LM951_COMPLETED
+		&& lm951_input(AT, 3) == LM951_COMPLETED;
 }
 
 TEST(parse_at_typo)
@@ -52,9 +52,16 @@ TEST(parse_at_partial)
 //Continues from the last test, very naughty.
 TEST(parse_at_in_parts)
 {
-	char* t = "t";
+	char* t = "t\n";
 
-	return lm951_input(t, 1) == LM951_COMPLETED;
+	return lm951_input(t, 2) == LM951_COMPLETED;
+}
+
+TEST(parse_ok_response)
+{
+	char ok[6] = {0x0D, 0x0A, 'O', 'K', 0x0D, 0x0A};
+
+	return lm951_input(ok, 6) == LM951_COMPLETED;
 }
 
 int main(){
@@ -68,6 +75,7 @@ int main(){
 	tests[2] = parse_at_typo;
 	tests[3] = parse_at_partial;
 	tests[4] = parse_at_in_parts;
+	tests[5] = parse_ok_response;
 
 	for(int i = 0; i < TESTCOUNT; i++) {
 		if((*tests[i])(&name) == true) {

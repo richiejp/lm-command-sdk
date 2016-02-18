@@ -5,7 +5,21 @@
 
 	access state->;
 
-	main := [aA][tT];
+	cr = '\r';
+	lf = '\n';
+	crlf = cr lf;
+
+	command_ok = crlf 'OK' crlf;
+	command_error = crlf 'ERROR' crlf;
+	command_response = command_ok | command_error;
+
+	responses = command_response;
+
+	at = [aA][tT];
+
+	commands = at '\n';
+
+	main := commands | responses;
 
 	write data;
 }%%
