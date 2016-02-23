@@ -3,11 +3,12 @@
 import os
 
 #Clang is my prefered C compiler, however most common compilers should work
-CC = 'clang'
+CC = 'clang -fcolor-diagnostics'
 
 #Get the clang analyzer compiler from the external environment
 if GetOption('analyze') is True:
 	CC = os.getenv('CC')
+
 
 print CC
 
@@ -32,6 +33,9 @@ env = Environment(CC = CC,
 #Import the Clang analyzer variables from the external environment
 if GetOption('analyze'):
 	env['ENV'].update(x for x in os.environ.items() if x[0].startswith('CCC_'))
+else:
+	#Import terminal environment variable to make Clang output more readable
+	env['ENV']['TERM'] = os.environ['TERM']
 
 #Generate the API documentation using cldoc
 docs = env.Command( Dir('docs')

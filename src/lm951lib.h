@@ -2,12 +2,16 @@
 extern "C" {
 #endif
 
-#include <stdbool.h>
+#include <stddef.h>
 
+/* State of the parser */
 enum LM951_ISTATUS {
-	LM951_COMPLETED,
-	LM951_OK,
-	LM951_ERROR
+	//A response or command was processed
+	LM951_COMPLETED = 0,
+	//No errors occurred, but needs more data
+	LM951_OK = 1,
+	//A lexing error occurred, can not continue
+	LM951_ERROR = 2
 };
 
 /* Parser state and callbacks
@@ -26,7 +30,17 @@ struct lm951_parser {
 	//- int act;
 	//- char *ts;
 	//- char *te
+	
+	void (*on_ok_response)();
+	void (*on_error_response)();
+	void (*on_error)(int current_state, char current_char);
+	void (*on_completed)();
 };
+
+extern struct lm951_parser default_state;
+
+void lm951_no_op(void);
+void lm951_no_op_e(int cs, char c);
 
 /* Parse the data 
  * @state The current state and callbacks
@@ -41,7 +55,7 @@ struct lm951_parser {
  */
 enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state, 
 				   char *data, 
-				   int length);
+				   size_t *length);
 
 /* Parse the data
  * @data The text/bytes to parse
@@ -52,7 +66,15 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
  *
  * @return TODO
  */
-enum LM951_ISTATUS lm951_input(char *data, int length);
+enum LM951_ISTATUS lm951_input(char *data, size_t *length);
+
+/* Set the parser to the begining state
+ * @state A parser's state or NULL
+ *
+ * This sets the cs member of <state> to the start value. If <state>
+ * is NULL then the default global state variable is used.
+ */
+void lm951_restart(struct lm951_parser *state);
 
 #ifdef __cplusplus
 }
