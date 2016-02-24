@@ -1,11 +1,10 @@
 #include "serialcontroller.h"
-#include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QDebug>
 
 SerialController::SerialController(QObject *parent) : QObject(parent)
 {
-
+    m_port = new QSerialPort(this);
 }
 
 void SerialController::requestPorts()
@@ -31,9 +30,23 @@ void SerialController::requestPorts()
     emit foundPorts(list);
 }
 
-void SerialController::requestOpenPort(QString name)
+void SerialController::requestOpenPort(QString name, int baud)
 {
+    m_port->setPortName(name);
+    m_port->setBaudRate((qint32)baud);
 
+    if(!m_port->open(QIODevice::ReadWrite)){
+        error(tr("Failed to open port"));
+    }else{
+        emit openedPort();
+    }
+}
+
+void SerialController::requestClosePort()
+{
+    m_port->close();
+
+    emit closedPort();
 }
 
 void SerialController::requestBauds()

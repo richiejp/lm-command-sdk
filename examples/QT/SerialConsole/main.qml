@@ -38,6 +38,19 @@ Window {
                 });
             }
         }
+
+        onError: {
+            messageText.text = message;
+            messageArea.state = "error";
+        }
+
+        onOpenedPort: {
+            wrapper.state = "opened"
+        }
+
+        onClosedPort: {
+            wrapper.state = "default"
+        }
     }
 
     Component.onCompleted: {
@@ -45,6 +58,7 @@ Window {
     }
 
     Item {
+        id: wrapper
         anchors.fill: parent
 
     Column {
@@ -123,7 +137,10 @@ Window {
                 onClicked: {
                     var selectedPort =
                             portsModel.get(portsCombo.currentIndex);
-                    sc.requestOpenPort(selectedPort.value);
+                    var selectedBaud =
+                            baudsModel.get(baudCombo.currentIndex);
+                    sc.requestOpenPort(selectedPort.value,
+                                       selectedBaud.value);
                 }
             }
 
@@ -133,7 +150,7 @@ Window {
                 visible: false
 
                 onClicked: {
-
+                    sc.requestClosePort();
                 }
             }
 
@@ -150,10 +167,33 @@ Window {
         }
 
         Rectangle {
+            id: messageArea
             anchors.left: parent.left
             anchors.right: parent.right
            height: 5
 
+           Text {
+               id: messageText
+               anchors.bottom: parent.bottom
+               visible: false
+               font.pointSize: 3
+           }
+
+           state: "empty"
+           states: [
+               State {
+                   name: "error"
+                   PropertyChanges {
+                       target: messageArea
+                       color: "Red"
+                       height: 100
+                   }
+                   PropertyChanges {
+                       target: messageText
+                       visible: true
+                   }
+               }
+           ]
         }
     }
 
@@ -185,7 +225,6 @@ Window {
                 visible: true
             }
         }
-
     ]
     }
 }

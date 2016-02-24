@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QSerialPort>
 
 class SerialController : public QObject
 {
@@ -22,9 +23,13 @@ signals:
 
 public slots:
     void requestPorts();
-    void requestOpenPort(QString name);
+    void requestOpenPort(QString name, int baud);
+    void requestClosePort();
     void requestBauds();
     void queueTxData(QString data);
+
+private:
+    QSerialPort *m_port;
 };
 
 #endif // SERIALCONTROLLER_H
