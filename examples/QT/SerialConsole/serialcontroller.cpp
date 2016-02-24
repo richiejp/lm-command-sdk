@@ -36,6 +36,17 @@ void SerialController::requestOpenPort(QString name)
 
 }
 
+void SerialController::requestBauds()
+{
+    QList<qint32> bauds = QSerialPortInfo::standardBaudRates();
+
+    if(bauds.length() < 1){
+        error(tr("No standard baud rates available"));
+    }
+
+    emit foundBauds(bauds);
+}
+
 void SerialController::queueTxData(QString data)
 {
 

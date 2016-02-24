@@ -16,13 +16,14 @@ signals:
     void error(QString message);
     void info(QString message, int level);
     void foundPorts(QVariantList ports);
-    void foundBaudRates(QVariantList rates);
+    void foundBauds(QList<qint32> rates);
     void openedPort();
     void closedPort();
 
 public slots:
     void requestPorts();
     void requestOpenPort(QString name);
+    void requestBauds();
     void queueTxData(QString data);
 };
 

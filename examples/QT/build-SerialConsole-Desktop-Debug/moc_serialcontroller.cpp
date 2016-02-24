@@ -9,6 +9,7 @@
 #include "../SerialConsole/serialcontroller.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
+#include <QtCore/QList>
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'serialcontroller.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
@@ -19,8 +20,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_SerialController_t {
-    QByteArrayData data[18];
-    char stringdata0[161];
+    QByteArrayData data[20];
+    char stringdata0[184];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -39,21 +40,24 @@ QT_MOC_LITERAL(6, 44, 4), // "info"
 QT_MOC_LITERAL(7, 49, 5), // "level"
 QT_MOC_LITERAL(8, 55, 10), // "foundPorts"
 QT_MOC_LITERAL(9, 66, 5), // "ports"
-QT_MOC_LITERAL(10, 72, 14), // "foundBaudRates"
-QT_MOC_LITERAL(11, 87, 5), // "rates"
-QT_MOC_LITERAL(12, 93, 10), // "openedPort"
-QT_MOC_LITERAL(13, 104, 10), // "closedPort"
-QT_MOC_LITERAL(14, 115, 12), // "requestPorts"
-QT_MOC_LITERAL(15, 128, 15), // "requestOpenPort"
-QT_MOC_LITERAL(16, 144, 4), // "name"
-QT_MOC_LITERAL(17, 149, 11) // "queueTxData"
+QT_MOC_LITERAL(10, 72, 10), // "foundBauds"
+QT_MOC_LITERAL(11, 83, 13), // "QList<qint32>"
+QT_MOC_LITERAL(12, 97, 5), // "rates"
+QT_MOC_LITERAL(13, 103, 10), // "openedPort"
+QT_MOC_LITERAL(14, 114, 10), // "closedPort"
+QT_MOC_LITERAL(15, 125, 12), // "requestPorts"
+QT_MOC_LITERAL(16, 138, 15), // "requestOpenPort"
+QT_MOC_LITERAL(17, 154, 4), // "name"
+QT_MOC_LITERAL(18, 159, 12), // "requestBauds"
+QT_MOC_LITERAL(19, 172, 11) // "queueTxData"
 
     },
     "SerialController\0rxData\0\0data\0error\0"
     "message\0info\0level\0foundPorts\0ports\0"
-    "foundBaudRates\0rates\0openedPort\0"
-    "closedPort\0requestPorts\0requestOpenPort\0"
-    "name\0queueTxData"
+    "foundBauds\0QList<qint32>\0rates\0"
+    "openedPort\0closedPort\0requestPorts\0"
+    "requestOpenPort\0name\0requestBauds\0"
+    "queueTxData"
 };
 #undef QT_MOC_LITERAL
 
@@ -63,7 +67,7 @@ static const uint qt_meta_data_SerialController[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      10,   14, // methods
+      11,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -71,31 +75,33 @@ static const uint qt_meta_data_SerialController[] = {
        7,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    1,   64,    2, 0x06 /* Public */,
-       4,    1,   67,    2, 0x06 /* Public */,
-       6,    2,   70,    2, 0x06 /* Public */,
-       8,    1,   75,    2, 0x06 /* Public */,
-      10,    1,   78,    2, 0x06 /* Public */,
-      12,    0,   81,    2, 0x06 /* Public */,
-      13,    0,   82,    2, 0x06 /* Public */,
+       1,    1,   69,    2, 0x06 /* Public */,
+       4,    1,   72,    2, 0x06 /* Public */,
+       6,    2,   75,    2, 0x06 /* Public */,
+       8,    1,   80,    2, 0x06 /* Public */,
+      10,    1,   83,    2, 0x06 /* Public */,
+      13,    0,   86,    2, 0x06 /* Public */,
+      14,    0,   87,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-      14,    0,   83,    2, 0x0a /* Public */,
-      15,    1,   84,    2, 0x0a /* Public */,
-      17,    1,   87,    2, 0x0a /* Public */,
+      15,    0,   88,    2, 0x0a /* Public */,
+      16,    1,   89,    2, 0x0a /* Public */,
+      18,    0,   92,    2, 0x0a /* Public */,
+      19,    1,   93,    2, 0x0a /* Public */,
 
  // signals: parameters
     QMetaType::Void, QMetaType::QString,    3,
     QMetaType::Void, QMetaType::QString,    5,
     QMetaType::Void, QMetaType::QString, QMetaType::Int,    5,    7,
     QMetaType::Void, QMetaType::QVariantList,    9,
-    QMetaType::Void, QMetaType::QVariantList,   11,
+    QMetaType::Void, 0x80000000 | 11,   12,
     QMetaType::Void,
     QMetaType::Void,
 
  // slots: parameters
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,   16,
+    QMetaType::Void, QMetaType::QString,   17,
+    QMetaType::Void,
     QMetaType::Void, QMetaType::QString,    3,
 
        0        // eod
@@ -111,13 +117,25 @@ void SerialController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int
         case 1: _t->error((*reinterpret_cast< QString(*)>(_a[1]))); break;
         case 2: _t->info((*reinterpret_cast< QString(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2]))); break;
         case 3: _t->foundPorts((*reinterpret_cast< QVariantList(*)>(_a[1]))); break;
-        case 4: _t->foundBaudRates((*reinterpret_cast< QVariantList(*)>(_a[1]))); break;
+        case 4: _t->foundBauds((*reinterpret_cast< QList<qint32>(*)>(_a[1]))); break;
         case 5: _t->openedPort(); break;
         case 6: _t->closedPort(); break;
         case 7: _t->requestPorts(); break;
         case 8: _t->requestOpenPort((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 9: _t->queueTxData((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 9: _t->requestBauds(); break;
+        case 10: _t->queueTxData((*reinterpret_cast< QString(*)>(_a[1]))); break;
         default: ;
+        }
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        switch (_id) {
+        default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+        case 4:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<int*>(_a[0]) = -1; break;
+            case 0:
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< QList<qint32> >(); break;
+            }
+            break;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
         int *result = reinterpret_cast<int *>(_a[0]);
@@ -147,8 +165,8 @@ void SerialController::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int
             }
         }
         {
-            typedef void (SerialController::*_t)(QVariantList );
-            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SerialController::foundBaudRates)) {
+            typedef void (SerialController::*_t)(QList<qint32> );
+            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&SerialController::foundBauds)) {
                 *result = 4;
             }
         }
@@ -192,13 +210,13 @@ int SerialController::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 10)
+        if (_id < 11)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 10;
+        _id -= 11;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 10)
-            *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 10;
+        if (_id < 11)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 11;
     }
     return _id;
 }
@@ -232,7 +250,7 @@ void SerialController::foundPorts(QVariantList _t1)
 }
 
 // SIGNAL 4
-void SerialController::foundBaudRates(QVariantList _t1)
+void SerialController::foundBauds(QList<qint32> _t1)
 {
     void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
     QMetaObject::activate(this, &staticMetaObject, 4, _a);
