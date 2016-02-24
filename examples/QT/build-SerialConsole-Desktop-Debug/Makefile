@@ -49,10 +49,14 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../SerialConsole/main.cpp \
-		../../../build/lm951lib.c qrc_qml.cpp
+		../../../build/lm951lib.c \
+		../SerialConsole/serialcontroller.cpp qrc_qml.cpp \
+		moc_serialcontroller.cpp
 OBJECTS       = main.o \
 		lm951lib.o \
-		qrc_qml.o
+		serialcontroller.o \
+		qrc_qml.o \
+		moc_serialcontroller.o
 DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/common/unix.conf \
 		/usr/lib/qt/mkspecs/common/linux.conf \
@@ -216,8 +220,10 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt/mkspecs/features/exceptions.prf \
 		/usr/lib/qt/mkspecs/features/yacc.prf \
 		/usr/lib/qt/mkspecs/features/lex.prf \
-		../SerialConsole/SerialConsole.pro ../../../build/lm951lib.h ../SerialConsole/main.cpp \
-		../../../build/lm951lib.c
+		../SerialConsole/SerialConsole.pro ../../../build/lm951lib.h \
+		../SerialConsole/serialcontroller.h ../SerialConsole/main.cpp \
+		../../../build/lm951lib.c \
+		../SerialConsole/serialcontroller.cpp
 QMAKE_TARGET  = SerialConsole
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = SerialConsole
@@ -606,8 +612,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../SerialConsole/qml.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents ../../../build/lm951lib.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../SerialConsole/main.cpp ../../../build/lm951lib.c $(DISTDIR)/
+	$(COPY_FILE) --parents ../../../build/lm951lib.h ../SerialConsole/serialcontroller.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../SerialConsole/main.cpp ../../../build/lm951lib.c ../SerialConsole/serialcontroller.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -636,8 +642,12 @@ qrc_qml.cpp: ../SerialConsole/qml.qrc \
 		../SerialConsole/main.qml
 	/usr/lib/qt/bin/rcc -name qml ../SerialConsole/qml.qrc -o qrc_qml.cpp
 
-compiler_moc_header_make_all:
+compiler_moc_header_make_all: moc_serialcontroller.cpp
 compiler_moc_header_clean:
+	-$(DEL_FILE) moc_serialcontroller.cpp
+moc_serialcontroller.cpp: ../SerialConsole/serialcontroller.h
+	/usr/lib/qt/bin/moc $(DEFINES) -I/usr/lib/qt/mkspecs/linux-g++ -I/home/developer/lm-command-sdk/examples/QT/SerialConsole -I/usr/include/qt -I/usr/include/qt/QtQuick -I/usr/include/qt/QtGui -I/usr/include/qt/QtQml -I/usr/include/qt/QtNetwork -I/usr/include/qt/QtSerialPort -I/usr/include/qt/QtCore -I. -I/usr/include/c++/5.3.0 -I/usr/include/c++/5.3.0/x86_64-unknown-linux-gnu -I/usr/include/c++/5.3.0/backward -I/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/include -I/usr/local/include -I/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/include-fixed -I/usr/include ../SerialConsole/serialcontroller.h -o moc_serialcontroller.cpp
+
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
 compiler_yacc_decl_make_all:
@@ -646,18 +656,24 @@ compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_rcc_clean 
+compiler_clean: compiler_rcc_clean compiler_moc_header_clean 
 
 ####### Compile
 
-main.o: ../SerialConsole/main.cpp 
+main.o: ../SerialConsole/main.cpp ../SerialConsole/serialcontroller.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../SerialConsole/main.cpp
 
 lm951lib.o: ../../../build/lm951lib.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o lm951lib.o ../../../build/lm951lib.c
 
+serialcontroller.o: ../SerialConsole/serialcontroller.cpp ../SerialConsole/serialcontroller.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o serialcontroller.o ../SerialConsole/serialcontroller.cpp
+
 qrc_qml.o: qrc_qml.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_qml.o qrc_qml.cpp
+
+moc_serialcontroller.o: moc_serialcontroller.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_serialcontroller.o moc_serialcontroller.cpp
 
 ####### Install
 

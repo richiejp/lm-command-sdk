@@ -4,7 +4,8 @@ QT += qml quick serialport
 CONFIG += c++11
 
 SOURCES += main.cpp \
-    ../../../build/lm951lib.c
+    ../../../build/lm951lib.c \
+    serialcontroller.cpp
 
 RESOURCES += qml.qrc
 
@@ -15,4 +16,5 @@ QML_IMPORT_PATH =
 include(deployment.pri)
 
 HEADERS += \
-    ../../../build/lm951lib.h
+    ../../../build/lm951lib.h \
+    serialcontroller.h

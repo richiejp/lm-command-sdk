@@ -4,8 +4,6 @@ import QtQuick.Controls 1.4
 Item {
     TextArea {
         id: consoleOutput
-        //anchors.left: parent.left
-        //anchors.right: parent.right
         width: parent.width
         height: parent.height - 20
 
