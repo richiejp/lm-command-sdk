@@ -14,6 +14,11 @@ enum LM951_ISTATUS {
 	LM951_ERROR = 2
 };
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+#endif
+
 /* Parser state and callbacks
  * 
  * This structure encapsulates the parser's state machine's... uh, state.
@@ -31,11 +36,25 @@ struct lm951_parser {
 	//- char *ts;
 	//- char *te
 	
+	//Action to take when OK response is parsed
 	void (*on_ok_response)();
+
+	//Action to take when ERROR response is parsed
 	void (*on_error_response)();
+
+	//Action to take when a lexing error occures
 	void (*on_error)(int current_state, char current_char);
+
+	//Action to take when a command or response is parsed
+	//
+	//The default action is to break out of the parsing loop, meaning
+	//lm951_input(s) will return without processing anymore data.
 	void (*on_completed)();
 };
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 extern struct lm951_parser default_state;
 

@@ -5,6 +5,9 @@
 
 #define TESTCOUNT 9
 
+static void print_error(int cs, char c);
+static void setup();
+
 //Copied from https://github.com/richiejp/roth/blob/master/src/tests.c
 //with permission of author :-)
 #define TEST(n)	static bool _##n();	\
@@ -15,11 +18,11 @@ static bool n(char **name)		\
 }					\
 static bool _##n()
 
-void print_error(int cs, char c){
+static void print_error(int cs, char c){
 	printf("Parser error in state %d on %c\n", cs, c);
 }
 
-void setup(){
+static void setup(){
 	default_state.on_error = print_error;
 }
 

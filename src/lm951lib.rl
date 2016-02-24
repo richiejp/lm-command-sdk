@@ -1,5 +1,11 @@
 #include "lm951lib.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
+
 %%{
 	machine atcmd;
 
@@ -46,6 +52,10 @@
 
 void lm951_no_op(){}
 void lm951_no_op_e(int cs, char c){}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 struct lm951_parser default_state = {
 	.cs = %%{ write start; }%%,
