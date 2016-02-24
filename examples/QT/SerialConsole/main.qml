@@ -164,6 +164,14 @@ Window {
                 }
             }
 
+            Button {
+                text: "cause error"
+                onClicked: {
+                    messageText.text = "A test error";
+                    messageArea.state = "error";
+                }
+            }
+
         }
 
         Rectangle {
@@ -176,7 +184,7 @@ Window {
                id: messageText
                anchors.bottom: parent.bottom
                visible: false
-               font.pointSize: 3
+               //font.pointSize: 3
            }
 
            state: "empty"
