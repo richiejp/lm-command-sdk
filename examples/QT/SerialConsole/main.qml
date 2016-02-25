@@ -184,7 +184,18 @@ Window {
                id: messageText
                anchors.bottom: parent.bottom
                visible: false
-               //font.pointSize: 3
+           }
+
+           Button {
+               id: messageCloseButton
+               anchors.bottom: parent.bottom
+               anchors.right: parent.right
+               text: "Close"
+               visible: false
+
+               onClicked: {
+                   messageArea.state = "empty";
+               }
            }
 
            state: "empty"
@@ -194,10 +205,14 @@ Window {
                    PropertyChanges {
                        target: messageArea
                        color: "Red"
-                       height: 100
+                       height: 80
                    }
                    PropertyChanges {
                        target: messageText
+                       visible: true
+                   }
+                   PropertyChanges {
+                       target: messageCloseButton
                        visible: true
                    }
                }
