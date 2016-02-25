@@ -45,11 +45,16 @@ Window {
         }
 
         onOpenedPort: {
-            wrapper.state = "opened"
+            wrapper.state = "opened";
+            serialConsole.state = "singleLineInput";
         }
 
         onClosedPort: {
-            wrapper.state = "default"
+            wrapper.state = "default";
+        }
+
+        onRxData: {
+            serialConsole.write(data);
         }
     }
 
@@ -164,13 +169,13 @@ Window {
                 }
             }
 
-            Button {
+            /*Button {
                 text: "cause error"
                 onClicked: {
                     messageText.text = "A test error";
                     messageArea.state = "error";
                 }
-            }
+            }*/
 
         }
 
@@ -221,10 +226,15 @@ Window {
     }
 
     Console {
+        id: serialConsole
         anchors.top: headerColumn.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+
+        onInputtedLine: {
+            sc.queueTxData(text);
+        }
     }
 
     state: "default"

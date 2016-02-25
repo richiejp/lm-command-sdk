@@ -2,12 +2,16 @@ import QtQuick 2.3
 import QtQuick.Controls 1.4
 
 Item {
+    function write(data){
+        consoleOutput.text += data;
+    }
+
+    signal inputtedLine(string text)
+
     TextArea {
         id: consoleOutput
         width: parent.width
         height: parent.height - 20
-
-        text: qsTr("Hello World")
     }
 
     Item {
@@ -25,10 +29,29 @@ Item {
         }
 
         TextInput {
+            id: lineInput
             anchors.left: promptSymbol.right
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+            enabled: false
+
+            onAccepted: {
+                inputtedLine(text);
+                text = "";
+            }
         }
     }
+
+    state: "default"
+    states: [
+        State {
+            name: "singleLineInput"
+
+            PropertyChanges {
+                target: lineInput
+                enabled: true
+            }
+        }
+    ]
 }

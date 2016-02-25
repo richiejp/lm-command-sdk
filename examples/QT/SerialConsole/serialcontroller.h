@@ -5,6 +5,8 @@
 #include <QVariantList>
 #include <QVariantMap>
 #include <QSerialPort>
+#include <QThread>
+#include "serialworker.h"
 
 class SerialController : public QObject
 {
@@ -14,22 +16,30 @@ public:
 
 signals:
     void rxData(QString data);
+    void txDataReady(QByteArray data);
     void error(QString message);
     void info(QString message, int level);
     void foundPorts(QVariantList ports);
     void foundBauds(QList<qint32> rates);
     void openedPort();
     void closedPort();
+    void requestOpenPort(QString name, int baud);
+    void requestClosePort();
 
 public slots:
     void requestPorts();
-    void requestOpenPort(QString name, int baud);
-    void requestClosePort();
     void requestBauds();
     void queueTxData(QString data);
+    void processRxData(QByteArray data);
+
+private slots:
+    void workerOpened(bool success, QString errors);
 
 private:
-    QSerialPort *m_port;
+    char m_lineEnd;
+    SerialWorker *m_worker;
+    QThread m_workerThread;
+
 };
 
 #endif // SERIALCONTROLLER_H

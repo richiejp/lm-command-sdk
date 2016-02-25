@@ -4,7 +4,28 @@
 
 SerialController::SerialController(QObject *parent) : QObject(parent)
 {
-    m_port = new QSerialPort(this);
+    m_lineEnd = 0x0D;
+    m_worker = new SerialWorker();
+    m_worker->moveToThread(&m_workerThread);
+
+    connect(&m_workerThread, &QThread::finished,
+            m_worker, &QObject::deleteLater);
+    connect(m_worker, &SerialWorker::error,
+            this, &SerialController::error);
+    connect(this, &SerialController::requestOpenPort,
+            m_worker, &SerialWorker::open);
+    connect(m_worker, &SerialWorker::opened,
+            this, &SerialController::workerOpened);
+    connect(this, &SerialController::requestClosePort,
+            m_worker, &SerialWorker::close);
+    connect(m_worker, &SerialWorker::closed,
+            this, &SerialController::closedPort);
+    connect(this, &SerialController::txDataReady,
+            m_worker, &SerialWorker::transmit);
+    connect(m_worker, &SerialWorker::recieved,
+            this, &SerialController::rxData);
+
+    m_workerThread.start();
 }
 
 void SerialController::requestPorts()
@@ -30,25 +51,6 @@ void SerialController::requestPorts()
     emit foundPorts(list);
 }
 
-void SerialController::requestOpenPort(QString name, int baud)
-{
-    m_port->setPortName(name);
-    m_port->setBaudRate((qint32)baud);
-
-    if(!m_port->open(QIODevice::ReadWrite)){
-        error(tr("Failed to open port"));
-    }else{
-        emit openedPort();
-    }
-}
-
-void SerialController::requestClosePort()
-{
-    m_port->close();
-
-    emit closedPort();
-}
-
 void SerialController::requestBauds()
 {
     QList<qint32> bauds = QSerialPortInfo::standardBaudRates();
@@ -62,5 +64,22 @@ void SerialController::requestBauds()
 
 void SerialController::queueTxData(QString data)
 {
+    QByteArray bytes = data.toLatin1();
+    bytes.append(m_lineEnd);
+    emit txDataReady(bytes);
+}
+
+void SerialController::processRxData(QByteArray data)
+{
+    emit rxData(QString(data));
+}
+
+void SerialController::workerOpened(bool success, QString errors)
+{
+    if(success){
+        emit openedPort();
+    }else{
+        emit error(tr("Failed to open port: %1").arg(errors));
+    }
 
 }

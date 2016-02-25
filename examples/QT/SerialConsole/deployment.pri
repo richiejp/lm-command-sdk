@@ -11,3 +11,9 @@ unix:!android {
 }
 
 export(INSTALLS)
+
+HEADERS += \
+    $$PWD/serialworker.h
+
+SOURCES += \
+    $$PWD/serialworker.cpp
