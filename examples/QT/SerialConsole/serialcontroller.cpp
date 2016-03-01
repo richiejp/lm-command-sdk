@@ -74,6 +74,10 @@ void SerialController::processRxData(QByteArray data)
     emit rxData(QString(data));
 }
 
+void SerialController::validateInput(QString data)
+{
+}
+
 void SerialController::workerOpened(bool success, QString errors)
 {
     if(success){

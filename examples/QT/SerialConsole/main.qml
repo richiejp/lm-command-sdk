@@ -195,7 +195,7 @@ Window {
                id: messageCloseButton
                anchors.bottom: parent.bottom
                anchors.right: parent.right
-               text: "Close"
+               text: "Hide"
                visible: false
 
                onClicked: {

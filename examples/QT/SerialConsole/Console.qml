@@ -40,6 +40,10 @@ Item {
                 inputtedLine(text);
                 text = "";
             }
+
+            onTextChanged: {
+
+            }
         }
     }
 

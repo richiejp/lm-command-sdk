@@ -25,12 +25,14 @@ signals:
     void closedPort();
     void requestOpenPort(QString name, int baud);
     void requestClosePort();
+    void inputValidated(QVariantMap feedback);
 
 public slots:
     void requestPorts();
     void requestBauds();
     void queueTxData(QString data);
     void processRxData(QByteArray data);
+    void validateInput(QString data);
 
 private slots:
     void workerOpened(bool success, QString errors);
