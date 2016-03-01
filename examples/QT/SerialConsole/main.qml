@@ -56,6 +56,10 @@ Window {
         onRxData: {
             serialConsole.write(data);
         }
+
+        onValidatedInput: {
+            serialConsole.updateValidation(feedback);
+        }
     }
 
     Component.onCompleted: {
@@ -234,6 +238,10 @@ Window {
 
         onInputtedLine: {
             sc.queueTxData(text);
+        }
+
+        onPartialInput: {
+            sc.validateInput(text);
         }
     }
 

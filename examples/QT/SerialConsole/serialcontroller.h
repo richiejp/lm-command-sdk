@@ -7,6 +7,7 @@
 #include <QSerialPort>
 #include <QThread>
 #include "serialworker.h"
+#include "parserworker.h"
 
 class SerialController : public QObject
 {
@@ -25,22 +26,24 @@ signals:
     void closedPort();
     void requestOpenPort(QString name, int baud);
     void requestClosePort();
-    void inputValidated(QVariantMap feedback);
+    void validatedInput(QVariantMap feedback);
+    void validateInput(QString data);
 
 public slots:
     void requestPorts();
     void requestBauds();
     void queueTxData(QString data);
     void processRxData(QByteArray data);
-    void validateInput(QString data);
 
 private slots:
     void workerOpened(bool success, QString errors);
 
 private:
     char m_lineEnd;
-    SerialWorker *m_worker;
-    QThread m_workerThread;
+    SerialWorker *m_sworker;
+    ParserWorker *m_pworker;
+    QThread m_sworkerThread;
+    QThread m_pworkerThread;
 
 };
 

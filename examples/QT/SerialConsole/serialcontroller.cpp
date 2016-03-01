@@ -5,27 +5,38 @@
 SerialController::SerialController(QObject *parent) : QObject(parent)
 {
     m_lineEnd = 0x0D;
-    m_worker = new SerialWorker();
-    m_worker->moveToThread(&m_workerThread);
+    m_sworker = new SerialWorker();
+    m_pworker = new ParserWorker();
+    m_sworker->moveToThread(&m_sworkerThread);
+    m_pworker->moveToThread(&m_pworkerThread);
 
-    connect(&m_workerThread, &QThread::finished,
-            m_worker, &QObject::deleteLater);
-    connect(m_worker, &SerialWorker::error,
+    connect(&m_sworkerThread, &QThread::finished,
+            m_sworker, &QObject::deleteLater);
+    connect(&m_pworkerThread, &QThread::finished,
+            m_pworker, &QObject::deleteLater);
+
+    connect(m_sworker, &SerialWorker::error,
             this, &SerialController::error);
     connect(this, &SerialController::requestOpenPort,
-            m_worker, &SerialWorker::open);
-    connect(m_worker, &SerialWorker::opened,
+            m_sworker, &SerialWorker::open);
+    connect(m_sworker, &SerialWorker::opened,
             this, &SerialController::workerOpened);
     connect(this, &SerialController::requestClosePort,
-            m_worker, &SerialWorker::close);
-    connect(m_worker, &SerialWorker::closed,
+            m_sworker, &SerialWorker::close);
+    connect(m_sworker, &SerialWorker::closed,
             this, &SerialController::closedPort);
     connect(this, &SerialController::txDataReady,
-            m_worker, &SerialWorker::transmit);
-    connect(m_worker, &SerialWorker::recieved,
+            m_sworker, &SerialWorker::transmit);
+    connect(m_sworker, &SerialWorker::recieved,
             this, &SerialController::rxData);
 
-    m_workerThread.start();
+    connect(this, &SerialController::validateInput,
+            m_pworker, &ParserWorker::validateInput);
+    connect(m_pworker, &ParserWorker::validatedInput,
+            this, &SerialController::validatedInput);
+
+    m_sworkerThread.start();
+    m_pworkerThread.start();
 }
 
 void SerialController::requestPorts()
@@ -72,10 +83,6 @@ void SerialController::queueTxData(QString data)
 void SerialController::processRxData(QByteArray data)
 {
     emit rxData(QString(data));
-}
-
-void SerialController::validateInput(QString data)
-{
 }
 
 void SerialController::workerOpened(bool success, QString errors)

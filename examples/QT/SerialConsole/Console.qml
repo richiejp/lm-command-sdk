@@ -6,7 +6,12 @@ Item {
         consoleOutput.text += data;
     }
 
+    function updateValidation(feedback){
+        lineInput.state = feedback.state;
+    }
+
     signal inputtedLine(string text)
+    signal partialInput(string text)
 
     TextArea {
         id: consoleOutput
@@ -42,8 +47,28 @@ Item {
             }
 
             onTextChanged: {
-
+                partialInput(text);
             }
+
+            state: "ok"
+            states: [
+                State {
+                    name: "completed"
+                    PropertyChanges {
+                        target: lineInput
+                        color: "green"
+                        font.bold: true
+                    }
+                },
+                State {
+                    name: "error"
+                    PropertyChanges {
+                        target: lineInput
+                        color: "red"
+                        font.bold: true
+                    }
+                }
+            ]
         }
     }
 
