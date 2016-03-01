@@ -42,8 +42,9 @@
 	responses = command_response; 
 
 	at = [aA][tT];
+	ver = '+' [vV][eE][rR];
 
-	commands = (at cr);
+	commands = at (cr | (ver) cr);
 
 	main := (commands | responses) %~on_completed @!on_error;
 

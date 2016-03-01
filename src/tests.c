@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm951lib.h"
 
-#define TESTCOUNT 11
+#define TESTCOUNT 12
 
 static void print_error(int cs, char c);
 static void setup();
@@ -132,6 +132,12 @@ TEST(parse_at_with_state)
 	return lm951_inputs(&state, at, &l) == LM951_COMPLETED;
 }
 
+TEST(parse_ver)
+{
+	size_t l = 7;
+	return lm951_input("at+ver\x0d", &l) == LM951_COMPLETED;
+}
+
 int main(){
 	int failed = 0;
 	char *name = "unnamed!";
@@ -147,7 +153,8 @@ int main(){
 		parse_ok_response,
 		parse_error_response,
 		init_state,
-		parse_at_with_state
+		parse_at_with_state,
+		parse_ver
 	};
 	setup();
 	printf("\n --==[ Running Tests ]==--\n\n");
