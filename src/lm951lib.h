@@ -56,7 +56,7 @@ struct lm951_parser {
 #pragma clang diagnostic pop
 #endif
 
-extern struct lm951_parser default_state;
+extern struct lm951_parser lm951_default_state;
 
 void lm951_no_op(void);
 void lm951_no_op_e(int cs, char c);
@@ -94,6 +94,8 @@ enum LM951_ISTATUS lm951_input(char *data, size_t *length);
  * is NULL then the default global state variable is used.
  */
 void lm951_restart(struct lm951_parser *state);
+
+void lm951_init(struct lm951_parser *state);
 
 #ifdef __cplusplus
 }

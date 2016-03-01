@@ -57,7 +57,7 @@ void lm951_no_op_e(int cs, char c){}
 #pragma clang diagnostic pop
 #endif
 
-struct lm951_parser default_state = {
+struct lm951_parser lm951_default_state = {
 	.cs = %%{ write start; }%%,
 	.on_ok_response = lm951_no_op,
 	.on_error_response = lm951_no_op,
@@ -81,10 +81,10 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
 	}
 
 	if(state->cs >= %%{ write first_final; }%%){
-		default_state.cs = %%{ write start; }%%;
+		state->cs = %%{ write start; }%%;
 		return LM951_COMPLETED;
 	}else if(state->cs == %%{ write error; }%%){
-		default_state.cs = %%{ write start; }%%;
+		state->cs = %%{ write start; }%%;
 		return LM951_ERROR;
 	}else{
 		return LM951_OK;
@@ -92,14 +92,23 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
 }
 
 enum LM951_ISTATUS lm951_input(char *data, size_t *length){
-	enum LM951_ISTATUS s = lm951_inputs(&default_state, data, length);
+	enum LM951_ISTATUS s = 
+		lm951_inputs(&lm951_default_state, data, length);
 	return s;
 }
 
 void lm951_restart(struct lm951_parser *state){
 	if(state == NULL){
-		state = &default_state;
+		state = &lm951_default_state;
 	}
 
 	state->cs = %%{ write start; }%%;
+}
+
+void lm951_init(struct lm951_parser *state){
+	state->cs = %%{ write start; }%%;
+	state->on_ok_response = lm951_no_op;
+	state->on_error_response = lm951_no_op;
+	state->on_error = lm951_no_op_e;
+	state->on_completed = NULL;
 }
