@@ -1,8 +1,12 @@
+#ifndef LM951LIB_H
+#define LM951LIB_H
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stddef.h>
+
+#define LM951_COMMAND_DELIMETER "\x0D"
 
 /* State of the parser */
 enum LM951_ISTATUS {
@@ -73,7 +77,7 @@ void lm951_no_op_e(int cs, char c);
  * @return TODO
  */
 enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state, 
-				   char *data, 
+				   char const *data, 
 				   size_t *length);
 
 /* Parse the data
@@ -85,7 +89,7 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
  *
  * @return TODO
  */
-enum LM951_ISTATUS lm951_input(char *data, size_t *length);
+enum LM951_ISTATUS lm951_input(char const *data, size_t *length);
 
 /* Set the parser to the begining state
  * @state A parser's state or NULL
@@ -100,3 +104,5 @@ void lm951_init(struct lm951_parser *state);
 #ifdef __cplusplus
 }
 #endif
+
+#endif //LM951LIB_H

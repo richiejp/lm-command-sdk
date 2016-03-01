@@ -66,13 +66,13 @@ struct lm951_parser lm951_default_state = {
 };
 
 enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state, 
-				   char *data, 
+				   char const *data, 
 				   size_t *length)
 {
 	if(*length > 0){
-		char *p = data;
-		char *pe = p + *length;
-		char *eof = NULL;
+		char const *p = data;
+		char const *pe = p + *length;
+		char const *eof = NULL;
 
 		%% write init nocs;
 		%% write exec;
@@ -91,7 +91,7 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
 	}
 }
 
-enum LM951_ISTATUS lm951_input(char *data, size_t *length){
+enum LM951_ISTATUS lm951_input(char const *data, size_t *length){
 	enum LM951_ISTATUS s = 
 		lm951_inputs(&lm951_default_state, data, length);
 	return s;
