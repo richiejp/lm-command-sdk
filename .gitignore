@@ -3,3 +3,4 @@ build/*
 .sconsign.dblite
 *.*.swp
 *.autosave
+*.pro.user
