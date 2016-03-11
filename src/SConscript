@@ -39,7 +39,7 @@ else:
 
 #Generate the API documentation using cldoc
 docs = env.Command( Dir('docs')
-									 ,'lm951lib.h'
+									 ,'lm048lib.h lm951lib.h'
 									 ,'cldoc generate -- $SOURCE --output $TARGET')
 env.Clean(docs, Glob('docs/*'))
 
@@ -49,21 +49,38 @@ copydocs = env.Command(Dir('../docs/API'), Dir('docs'), [
 													 ,Copy(Dir('../docs/API'), Dir('docs'))])
 env.Depends(copydocs, docs)
 
-FILES = [
+C_FILES = [
+	'lm048lib.c',
 	'lm951lib.c'
 ]
 
-TEST_FILES = FILES[:]
-TEST_FILES.append('tests.c')
+LM048_TEST_FILES = [
+	'lm048lib.c',
+	'lm048_tests.c'
+]
 
-#Build the library
-libc = env.Ragel('lm951lib.rl')
-lib = env.Object(FILES)
+LM951_TEST_FILES = [
+	'lm951lib.c',
+	'lm951_tests.c'
+]
+
+RAGEL_FILES = [
+	'lm048lib.rl',
+	'lm951lib.rl'
+]
+
+#Build the library, note that Ragel only takes a single file as input
+for rl in RAGEL_FILES:
+	env.Ragel(rl)
+lib = env.Object(C_FILES)
 
 #Set only the library as the default build target
 env.Default(lib)
 
 #Build the tests and run them on check command
-tests = env.Program('tests', TEST_FILES)
-check = env.Alias('check', tests, tests[0].abspath)
-env.Depends(check, tests)
+lm048_tests = env.Program('lm048_tests', LM048_TEST_FILES)
+lm951_tests = env.Program('lm951_tests', LM951_TEST_FILES)
+lm048_check = env.Alias('check-lm048', lm048_tests, lm048_tests[0].abspath)
+lm951_check = env.Alias('check-lm951', lm951_tests, lm951_tests[0].abspath)
+env.Depends(lm048_check, lm048_tests)
+env.Depends(lm951_check, lm951_tests)

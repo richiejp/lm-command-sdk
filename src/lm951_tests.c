@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "lm951lib.h"
+#include "lm048lib.h"
 
 #define TESTCOUNT 12
 
