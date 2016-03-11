@@ -84,7 +84,7 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
  * @data The text/bytes to parse
  * @length The length of the <data>
  *
- * Performs the same purpose as lm951_inputs, but with automatically
+ * Performs the same purpose as <lm951_inputs>, but with automatically
  * managed state.
  *
  * @return TODO
