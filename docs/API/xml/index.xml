@@ -1,17 +1,56 @@
 <?xml version='1.0' encoding='utf-8'?>
 <index xmlns="http://jessevdk.github.com/cldoc/1.0">
+  <variable id="lm951_default_state" name="lm951_default_state">
+    <type name="lm951_parser" ref="lm951_parser#lm951_parser" />
+  </variable>
   <struct name="lm951_parser" ref="lm951_parser#lm951_parser">
     <brief> Parser state and callbacks</brief>
   </struct>
+  <enum anonymous="yes" id="LM951_ISTATUS" name="LM951_ISTATUS">
+    <brief>State of the parser</brief>
+    <enumvalue id="LM951_COMPLETED" name="LM951_COMPLETED" value="0">
+      <brief>A response or command was processed</brief>
+    </enumvalue>
+    <enumvalue id="LM951_OK" name="LM951_OK" value="1">
+      <brief>No errors occurred, but needs more data</brief>
+    </enumvalue>
+    <enumvalue id="LM951_ERROR" name="LM951_ERROR" value="2">
+      <brief>A lexing error occurred, can not continue</brief>
+    </enumvalue>
+  </enum>
   <function id="lm951_input" name="lm951_input">
+    <brief> Parse the data</brief>
+    <doc>Performs the same purpose as lm951_inputs, but with automatically
+managed state.
+
+</doc>
     <return>
-      <type builtin="yes" name="int" />
+      <doc>TODO</doc>
+      <type name="LM951_ISTATUS" ref="index#LM951_ISTATUS" />
     </return>
     <argument id="lm951_input::data" name="data">
-      <type builtin="yes" name="char" qualifier="*" />
+      <doc>The text/bytes to parse</doc>
+      <type builtin="yes" name="char" qualifier=" const *" />
     </argument>
     <argument id="lm951_input::length" name="length">
+      <doc>The length of the <ref ref="#lm951_input::data">data</ref></doc>
+      <type name="size_t" qualifier="*" />
+    </argument>
+  </function>
+  <function id="lm951_no_op" name="lm951_no_op">
+    <return>
+      <type builtin="yes" name="void" />
+    </return>
+  </function>
+  <function id="lm951_no_op_e" name="lm951_no_op_e">
+    <return>
+      <type builtin="yes" name="void" />
+    </return>
+    <argument id="lm951_no_op_e::cs" name="cs">
       <type builtin="yes" name="int" />
+    </argument>
+    <argument id="lm951_no_op_e::c" name="c">
+      <type builtin="yes" name="char" />
     </argument>
   </function>
 </index>
