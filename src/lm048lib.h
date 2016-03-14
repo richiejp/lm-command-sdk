@@ -7,7 +7,7 @@ extern "C" {
 #include <stddef.h>
 
 #define LM048_COMMAND_DELIMETER "\x0D"
-#define LM048_QUEUE_LENGTH 100
+#define LM048_DEFAULT_QUEUE_LENGTH 100
 
 /* Function return statuses */
 enum LM048_STATUS {
@@ -36,6 +36,11 @@ enum LM048_AT{
 
 struct lm048_packet {
 	enum LM048_AT type;
+};
+
+struct lm048_queue {
+	struct lm048_packet (*array)[2];
+	size_t front, back;
 };
 
 #ifdef __clang__

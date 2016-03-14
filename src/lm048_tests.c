@@ -161,13 +161,13 @@ TEST(enqueue_many)
 		.type = LM048_AT_OK
 	};
 
-	for(int i = 0; i < LM048_QUEUE_LENGTH; i++){
+	for(int i = 0; i < LM048_QUEUE_LENGTH - 1; i++){
 		if(lm048_enqueue(cmd, resp) != LM048_COMPLETED){
 			return false;
 		}
 	}
 
-	return true;
+	return lm048_enqueue(cmd, resp) == LM048_FULL;
 }
 
 int main(){

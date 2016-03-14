@@ -68,10 +68,15 @@ struct lm048_parser lm048_default_state = {
 	.on_completed = NULL
 };
 
-static struct lm048_packet queue[LM048_QUEUE_LENGTH][2];
-static size_t queue_front = 0, queue_back = 0;
+static struct lm048_packet queue_array[LM048_DEFAULT_QUEUE_LENGTH][2];
+static struct lm048_queue default_queue = {
+	.array = &queue_array,
+	.front = 0,
+	.back = 0
+};
 
-enum LM048_STATUS lm048_enqueue(const struct lm048_packet command,
+enum LM048_STATUS lm048_enqueue(const
+				const struct lm048_packet command,
 				const struct lm048_packet response){
 	queue[queue_back][0] = command;
 	queue[queue_back][1] = response;
