@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 12
+#define TESTCOUNT 14
 
 static void print_error(int cs, char c);
 static void setup();
@@ -36,7 +36,7 @@ TEST(parse_cr)
 	char* cr = "\x0d";
 	size_t l = 1;
 
-	enum LM048_ISTATUS s = lm048_input(cr, &l);
+	enum LM048_STATUS s = lm048_input(cr, &l);
 	lm048_restart(NULL);
 	return s == LM048_OK;
 }
@@ -60,7 +60,7 @@ TEST(parse_at_at)
 	char* at = "at\x0d""at\x0d";
 	size_t l = 6;
 
-	enum LM048_ISTATUS s = lm048_input(at, &l);
+	enum LM048_STATUS s = lm048_input(at, &l);
 	if(s != LM048_COMPLETED){
 		printf("parse_at_at: l = %zu, s = %d\n", l, s);
 		return false;
@@ -138,6 +138,38 @@ TEST(parse_ver)
 	return lm048_input("at+ver\x0d", &l) == LM048_COMPLETED;
 }
 
+TEST(enqueue_one)
+{
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_OK
+	};
+
+	return lm048_enqueue(cmd, resp) == LM048_COMPLETED;
+}
+
+TEST(enqueue_many)
+{
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_OK
+	};
+
+	for(int i = 0; i < LM048_QUEUE_LENGTH; i++){
+		if(lm048_enqueue(cmd, resp) != LM048_COMPLETED){
+			return false;
+		}
+	}
+
+	return true;
+}
+
 int main(){
 	int failed = 0;
 	char *name = "unnamed!";
@@ -154,8 +186,11 @@ int main(){
 		parse_error_response,
 		init_state,
 		parse_at_with_state,
-		parse_ver
+		parse_ver,
+		enqueue_one,
+		enqueue_many
 	};
+
 	setup();
 	printf("\n --==[ Running Tests ]==--\n\n");
 	for(int i = 0; i < TESTCOUNT; i++) {
