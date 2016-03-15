@@ -60,29 +60,35 @@ void lm048_no_op_e(int cs, char c){}
 #pragma clang diagnostic pop
 #endif
 
+static struct lm048_packet default_queue_array[LM048_DEFAULT_QUEUE_LENGTH][2];
+static struct lm048_queue default_queue = {
+	.array = default_queue_array,
+	.front = 0,
+	.back = 0,
+	.length = LM048_DEFAULT_QUEUE_LENGTH
+};
+
 struct lm048_parser lm048_default_state = {
 	.cs = %%{ write start; }%%,
 	.on_ok_response = lm048_no_op,
 	.on_error_response = lm048_no_op,
 	.on_error = lm048_no_op_e,
-	.on_completed = NULL
+	.on_completed = NULL,
+	.queue = &default_queue
 };
 
-static struct lm048_packet queue_array[LM048_DEFAULT_QUEUE_LENGTH][2];
-static struct lm048_queue default_queue = {
-	.array = &queue_array,
-	.front = 0,
-	.back = 0
-};
-
-enum LM048_STATUS lm048_enqueue(const
-				const struct lm048_packet command,
-				const struct lm048_packet response){
-	queue[queue_back][0] = command;
-	queue[queue_back][1] = response;
-	if(LM048_QUEUE_LENGTH <= ++queue_back){
-		queue_back = 0;
-		if(queue_back == queue_front){
+enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
+				struct lm048_packet const command,
+				struct lm048_packet const response){
+	struct lm048_queue *que = queue;
+	if(que == NULL){
+		que = &default_queue;
+	}
+	que->array[que->back][0] = command;
+	que->array[que->back][1] = response;
+	if(que->length <= ++que->back){
+		que->back = 0;
+		if(que->back == que->front){
 			return LM048_FULL;
 		}
 	}
@@ -90,14 +96,15 @@ enum LM048_STATUS lm048_enqueue(const
 	return LM048_COMPLETED;
 }
 
-static enum LM048_STATUS dequeue(const struct lm048_packet received){
-	if(queue_front == queue_back){
+static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
+				 struct lm048_packet const received){
+	if(queue->front == queue->back){
 		return LM048_COMPLETED;
 	}
 
-	struct lm048_packet *expected = &queue[queue_front][1];
-	if(LM048_QUEUE_LENGTH <= ++queue_front){
-		queue_front = 0;
+	struct lm048_packet *expected = &(queue->array[queue->front][1]);
+	if(queue->length <= ++queue->front){
+		queue->front = 0;
 	}
 
 	if(expected->type != received.type){
@@ -107,13 +114,27 @@ static enum LM048_STATUS dequeue(const struct lm048_packet received){
 	return LM048_DEQUEUED;
 }
 
-enum LM048_STATUS lm048_next_in_queue(struct lm048_packet const *pkt){
+enum LM048_STATUS lm048_next_in_queue(struct lm048_packet const *const pkt)
+{
 	return LM048_COMPLETED;
 }
 
-enum LM048_STATUS lm048_inputs(struct lm048_parser *state, 
-				   char const *data, 
-				   size_t *length)
+struct lm048_queue 
+lm048_init_queue(struct lm048_packet (*const array)[2],
+		 size_t const length)
+{
+	struct lm048_queue q = {
+		.array = array,
+		.front = 0,
+		.back = 0,
+		.length = length
+	};
+	return q;
+}
+
+enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
+			       char const *const data, 
+			       size_t *const length)
 {
 	struct lm048_packet pkt = {
 		.type = LM048_AT_NONE
@@ -132,7 +153,7 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *state,
 
 	if(state->cs >= %%{ write first_final; }%%){
 		state->cs = %%{ write start; }%%;
-		return dequeue(pkt);
+		return dequeue(state->queue, pkt);
 	}else if(state->cs == %%{ write error; }%%){
 		state->cs = %%{ write start; }%%;
 		return LM048_ERROR;
@@ -141,13 +162,15 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *state,
 	}
 }
 
-enum LM048_STATUS lm048_input(char const *data, size_t *length){
+enum LM048_STATUS lm048_input(char const *const data, size_t *const length)
+{
 	enum LM048_STATUS s = 
 		lm048_inputs(&lm048_default_state, data, length);
 	return s;
 }
 
-void lm048_restart(struct lm048_parser *state){
+void lm048_restart(struct lm048_parser *state)
+{
 	if(state == NULL){
 		state = &lm048_default_state;
 	}
@@ -155,11 +178,13 @@ void lm048_restart(struct lm048_parser *state){
 	state->cs = %%{ write start; }%%;
 }
 
-void lm048_init(struct lm048_parser *state){
+void lm048_init(struct lm048_parser *state)
+{
 	state->cs = %%{ write start; }%%;
 	state->on_ok_response = lm048_no_op;
 	state->on_error_response = lm048_no_op;
 	state->on_error = lm048_no_op_e;
 	state->on_completed = NULL;
+	state->queue = &default_queue;
 }
 

@@ -40,7 +40,7 @@ struct lm048_packet {
 
 struct lm048_queue {
 	struct lm048_packet (*array)[2];
-	size_t front, back;
+	size_t front, back, length;
 };
 
 #ifdef __clang__
@@ -79,6 +79,8 @@ struct lm048_parser {
 	//The default action is to break out of the parsing loop, meaning
 	//lm048_input(s) will return without processing anymore data.
 	void (*on_completed)();
+
+	struct lm048_queue *queue;
 };
 
 #ifdef __clang__
@@ -101,9 +103,9 @@ void lm048_no_op_e(int cs, char c);
  *
  * @return TODO
  */
-enum LM048_STATUS lm048_inputs(struct lm048_parser *state, 
-			       char const *data, 
-			       size_t *length);
+enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
+			       char const *const data, 
+			       size_t *const length);
 
 /* Parse the data
  * @data The text/bytes to parse
@@ -114,7 +116,7 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *state,
  *
  * @return TODO
  */
-enum LM048_STATUS lm048_input(char const *data, size_t *length);
+enum LM048_STATUS lm048_input(char const *const data, size_t *const length);
 
 /* Set the parser to the begining state
  * @state A parser's state or NULL
@@ -122,14 +124,20 @@ enum LM048_STATUS lm048_input(char const *data, size_t *length);
  * This sets the cs member of <state> to the start value. If <state>
  * is NULL then the default global state variable is used.
  */
-void lm048_restart(struct lm048_parser *state);
+void lm048_restart(struct lm048_parser *const state);
 
-void lm048_init(struct lm048_parser *state);
+void lm048_init(struct lm048_parser *const state);
 
-enum LM048_STATUS lm048_enqueue(const struct lm048_packet command,
-				const struct lm048_packet response);
+enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
+				struct lm048_packet const command,
+				struct lm048_packet const response);
 
-enum LM048_STATUS lm048_next_in_queue(struct lm048_packet const *command);
+enum LM048_STATUS 
+lm048_next_in_queue(struct lm048_packet const *const command);
+
+struct lm048_queue 
+lm048_init_queue(struct lm048_packet (*const array)[2], 
+		 size_t const length);
 
 #ifdef __cplusplus
 }

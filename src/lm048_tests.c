@@ -148,7 +148,7 @@ TEST(enqueue_one)
 		.type = LM048_AT_OK
 	};
 
-	return lm048_enqueue(cmd, resp) == LM048_COMPLETED;
+	return lm048_enqueue(NULL, cmd, resp) == LM048_COMPLETED;
 }
 
 TEST(enqueue_many)
@@ -161,13 +161,16 @@ TEST(enqueue_many)
 		.type = LM048_AT_OK
 	};
 
-	for(int i = 0; i < LM048_QUEUE_LENGTH - 1; i++){
-		if(lm048_enqueue(cmd, resp) != LM048_COMPLETED){
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_init_queue(a, 100);
+
+	for(int i = 0; i < 100 - 1; i++){
+		if(lm048_enqueue(&que, cmd, resp) != LM048_COMPLETED){
 			return false;
 		}
 	}
 
-	return lm048_enqueue(cmd, resp) == LM048_FULL;
+	return lm048_enqueue(&que, cmd, resp) == LM048_FULL;
 }
 
 int main(){
@@ -200,6 +203,7 @@ int main(){
 			failed++;
 			printf("[Test %d]Failed %s!!!!!!!\n", i+1, name);
 		}
+		fflush(stdin);
 	}
 
 	printf("\n -{ %d tests failed out of %d }-\n", failed, TESTCOUNT);
