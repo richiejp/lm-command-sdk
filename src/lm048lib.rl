@@ -33,20 +33,29 @@
 		}
 	}
 
+	action on_at_at {
+		pkt.type = LM048_AT_AT;
+	}
+
+	action on_ver {
+		pkt.type = LM048_AT_VER;
+	}
+
 	cr = '\r';
 	lf = '\n';
 	crlf = cr lf;
 
-	command_ok = crlf 'OK' crlf @on_ok_response;
-	command_error = crlf 'ERROR' crlf @on_error_response;
-	command_response = command_ok | command_error;
+	ok = crlf 'OK' crlf @on_ok_response;
+	error = crlf 'ERROR' crlf @on_error_response;
+	command_response = ok | error;
 
 	responses = command_response; 
 
 	at = [aA][tT];
-	ver = '+' [vV][eE][rR];
+	at_at = at cr @on_at_at;
+	ver = at '+' [vV][eE][rR] cr @on_ver;
 
-	commands = at (cr | (ver) cr);
+	commands = at_at | ver;
 
 	main := (commands | responses) %~on_completed @!on_error;
 
@@ -102,7 +111,13 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 		return LM048_COMPLETED;
 	}
 
+	struct lm048_packet *cmd_echo = &(queue->array[queue->front][0]);
 	struct lm048_packet *expected = &(queue->array[queue->front][1]);
+
+	if(cmd_echo->type == received.type){
+		return LM048_OK;
+	}
+
 	if(queue->length <= ++queue->front){
 		queue->front = 0;
 	}
@@ -140,7 +155,7 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		.type = LM048_AT_NONE
 	};
 
-	if(*length > 0){
+	if(*length > 0 && data != NULL){
 		char const *p = data;
 		char const *pe = p + *length;
 		char const *eof = NULL;

@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 14
+#define TESTCOUNT 16
 
 static void print_error(int cs, char c);
 static void setup();
@@ -173,6 +173,62 @@ TEST(enqueue_many)
 	return lm048_enqueue(&que, cmd, resp) == LM048_FULL;
 }
 
+TEST(expected_one)
+{
+	char const *const at = "AT\x0D";
+	char const *const ok = "\x0d\x0a""OK\x0d\x0a";
+	size_t l = 6;
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_OK
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_init_queue(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	return lm048_inputs(&state, ok, &l) == LM048_DEQUEUED;
+}
+
+TEST(expected_one_echo)
+{
+	char const *const at = "AT\x0D";
+	char const *const ok = "\x0d\x0a""OK\x0d\x0a";
+	size_t l = 3;
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_OK
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_init_queue(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	if(lm048_inputs(&state, at, &l) != LM048_OK){
+		return false;
+	}
+	l = 6;
+	return lm048_inputs(&state, ok, &l) == LM048_DEQUEUED;
+}
+
 int main(){
 	int failed = 0;
 	char *name = "unnamed!";
@@ -191,7 +247,9 @@ int main(){
 		parse_at_with_state,
 		parse_ver,
 		enqueue_one,
-		enqueue_many
+		enqueue_many,
+		expected_one,
+		expected_one_echo
 	};
 
 	setup();
