@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 16
+#define TESTCOUNT 18
 
 static void print_error(int cs, char c);
 static void setup();
@@ -229,6 +229,71 @@ TEST(expected_one_echo)
 	return lm048_inputs(&state, ok, &l) == LM048_DEQUEUED;
 }
 
+TEST(expected_many_echo)
+{
+	char const *const at = "AT\x0D";
+	char const *const ok = "\x0d\x0a""OK\x0d\x0a";
+	size_t l = 3;
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_OK
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_init_queue(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	for(int i = 0; i < 10; i++){
+		lm048_enqueue(&que, cmd, resp);
+	}
+
+	for(int i = 0; i < 10; i++){
+		l = 3;
+		if(lm048_inputs(&state, at, &l) != LM048_OK){
+			return false;
+		}
+		l = 6;
+		if(lm048_inputs(&state, ok, &l) != LM048_DEQUEUED){
+			return false;
+		}
+	}
+
+	return true;
+}
+
+TEST(unexpected_one)
+{
+	char const *const at = "AT\x0D";
+	char const *const ok = "\x0d\x0a""OK\x0d\x0a";
+	size_t l = 6;
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_ERROR
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_init_queue(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	return lm048_inputs(&state, ok, &l) == LM048_UNEXPECTED;
+}
+
 int main(){
 	int failed = 0;
 	char *name = "unnamed!";
@@ -249,7 +314,9 @@ int main(){
 		enqueue_one,
 		enqueue_many,
 		expected_one,
-		expected_one_echo
+		expected_one_echo,
+		expected_many_echo,
+		unexpected_one
 	};
 
 	setup();
