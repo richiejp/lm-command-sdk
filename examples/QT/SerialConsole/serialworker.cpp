@@ -20,7 +20,7 @@ void SerialWorker::open(QString portName, int baud)
     qDebug() << "Opening " << portName
              << " " << baud;
 
-    if(!m_port->open(QIODevice::ReadWrite)){
+    if(m_port->open(QIODevice::ReadWrite)){
         emit opened(true, "");
     }else{
         emit opened(false, m_port->errorString());
