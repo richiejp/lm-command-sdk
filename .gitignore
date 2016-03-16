@@ -1,4 +1,7 @@
-build/*
+build/*.rl
+build/*.o
+build/*_tests*
+build/SConscript
 **/build-*
 .sconsign.dblite
 *.*.swp
