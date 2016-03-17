@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 20
+#define TESTCOUNT 21
 
 static void print_error(int cs, char c);
 static void setup();
@@ -296,7 +296,8 @@ TEST(queue_front_empty)
 {
 	struct lm048_packet a[100][2];
 	struct lm048_queue que = lm048_queue_init(a, 100);
-	struct lm048_packet *fcmd, *fresp;
+	struct lm048_packet const *fcmd;
+	struct lm048_packet const *fresp;
 
 	enum LM048_STATUS s = lm048_queue_front(&que, &fcmd, &fresp);
 
@@ -317,7 +318,8 @@ TEST(queue_front)
 
 	struct lm048_packet a[100][2];
 	struct lm048_queue que = lm048_queue_init(a, 100);
-	struct lm048_packet *fcmd, *fresp;
+	struct lm048_packet const *fcmd;
+	struct lm048_packet const *fresp;
 
 	lm048_enqueue(&que, cmd, resp);
 
@@ -326,6 +328,22 @@ TEST(queue_front)
 	return s == LM048_COMPLETED && fcmd->type == cmd.type
 		&& fresp->type == resp.type;
 }
+
+TEST(write_at_at)
+{
+	char const *const at = "AT\x0d";
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	char buf[LM048_MINIMUM_WRITE_BUFFER];
+	size_t length;
+
+	lm048_write_packet(buf, &length, &cmd);
+
+	return strncmp(buf, at, length) == 0;
+}
+
 
 int main(){
 	int failed = 0;
@@ -351,7 +369,8 @@ int main(){
 		expected_many_echo,
 		unexpected_one,
 		queue_front_empty,
-		queue_front
+		queue_front,
+		write_at_at
 	};
 
 	setup();
