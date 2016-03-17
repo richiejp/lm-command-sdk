@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 18
+#define TESTCOUNT 20
 
 static void print_error(int cs, char c);
 static void setup();
@@ -162,7 +162,7 @@ TEST(enqueue_many)
 	};
 
 	struct lm048_packet a[100][2];
-	struct lm048_queue que = lm048_init_queue(a, 100);
+	struct lm048_queue que = lm048_queue_init(a, 100);
 
 	for(int i = 0; i < 100 - 1; i++){
 		if(lm048_enqueue(&que, cmd, resp) != LM048_COMPLETED){
@@ -175,7 +175,6 @@ TEST(enqueue_many)
 
 TEST(expected_one)
 {
-	char const *const at = "AT\x0D";
 	char const *const ok = "\x0d\x0a""OK\x0d\x0a";
 	size_t l = 6;
 
@@ -188,7 +187,7 @@ TEST(expected_one)
 	};
 
 	struct lm048_packet a[100][2];
-	struct lm048_queue que = lm048_init_queue(a, 100);
+	struct lm048_queue que = lm048_queue_init(a, 100);
 
 	struct lm048_parser state;
 	lm048_init(&state);
@@ -214,7 +213,7 @@ TEST(expected_one_echo)
 	};
 
 	struct lm048_packet a[100][2];
-	struct lm048_queue que = lm048_init_queue(a, 100);
+	struct lm048_queue que = lm048_queue_init(a, 100);
 
 	struct lm048_parser state;
 	lm048_init(&state);
@@ -244,7 +243,7 @@ TEST(expected_many_echo)
 	};
 
 	struct lm048_packet a[100][2];
-	struct lm048_queue que = lm048_init_queue(a, 100);
+	struct lm048_queue que = lm048_queue_init(a, 100);
 
 	struct lm048_parser state;
 	lm048_init(&state);
@@ -270,7 +269,6 @@ TEST(expected_many_echo)
 
 TEST(unexpected_one)
 {
-	char const *const at = "AT\x0D";
 	char const *const ok = "\x0d\x0a""OK\x0d\x0a";
 	size_t l = 6;
 
@@ -283,7 +281,7 @@ TEST(unexpected_one)
 	};
 
 	struct lm048_packet a[100][2];
-	struct lm048_queue que = lm048_init_queue(a, 100);
+	struct lm048_queue que = lm048_queue_init(a, 100);
 
 	struct lm048_parser state;
 	lm048_init(&state);
@@ -292,6 +290,41 @@ TEST(unexpected_one)
 	lm048_enqueue(&que, cmd, resp);
 
 	return lm048_inputs(&state, ok, &l) == LM048_UNEXPECTED;
+}
+
+TEST(queue_front_empty)
+{
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_queue_init(a, 100);
+	struct lm048_packet *fcmd, *fresp;
+
+	enum LM048_STATUS s = lm048_queue_front(&que, &fcmd, &fresp);
+
+	printf("Status %d", s);
+
+	return s == LM048_EMPTY && fcmd == NULL && fresp == NULL;
+}
+
+TEST(queue_front)
+{
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_ERROR
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_queue_init(a, 100);
+	struct lm048_packet *fcmd, *fresp;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	enum LM048_STATUS s = lm048_queue_front(&que, &fcmd, &fresp);
+
+	return s == LM048_COMPLETED && fcmd->type == cmd.type
+		&& fresp->type == resp.type;
 }
 
 int main(){
@@ -316,7 +349,9 @@ int main(){
 		expected_one,
 		expected_one_echo,
 		expected_many_echo,
-		unexpected_one
+		unexpected_one,
+		queue_front_empty,
+		queue_front
 	};
 
 	setup();

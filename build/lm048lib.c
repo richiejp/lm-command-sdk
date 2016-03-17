@@ -1,6 +1,11 @@
 
 #line 1 "build/lm048lib.rl"
 #include "lm048lib.h"
+#include <string.h>
+
+#define CR LM048_COMMAND_DELIMETER
+#define CRLF LM048_RESPONSE_DELIMETER
+#define ATP "at+"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -9,7 +14,7 @@
 #endif
 
 
-#line 13 "build/lm048lib.c"
+#line 18 "build/lm048lib.c"
 static const int atcmd_start = 1;
 static const int atcmd_first_final = 19;
 static const int atcmd_error = 0;
@@ -17,7 +22,7 @@ static const int atcmd_error = 0;
 static const int atcmd_en_main = 1;
 
 
-#line 63 "build/lm048lib.rl"
+#line 68 "build/lm048lib.rl"
 
 
 void lm048_no_op(){}
@@ -87,13 +92,32 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 	return LM048_DEQUEUED;
 }
 
-enum LM048_STATUS lm048_next_in_queue(struct lm048_packet const *const pkt)
+enum LM048_STATUS lm048_queue_front(struct lm048_queue const *const queue,
+				    struct lm048_packet const **cmd,
+				    struct lm048_packet const **resp)
 {
-	return LM048_COMPLETED;
+	struct lm048_queue const *que = &default_queue;
+	if(queue != NULL){
+		que = queue;
+	}
+
+	enum LM048_STATUS ret;
+
+	if(que->front == que->back){
+		*cmd = NULL;
+		*resp = NULL;
+		ret = LM048_EMPTY;
+	}else{
+		*cmd = &(que->array[que->front][0]);
+		*resp = &(que->array[que->front][1]);
+		ret = LM048_COMPLETED;
+	}
+
+	return ret;
 }
 
-struct lm048_queue 
-lm048_init_queue(struct lm048_packet (*const array)[2],
+struct lm048_queue
+lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length)
 {
 	struct lm048_queue q = {
@@ -103,6 +127,43 @@ lm048_init_queue(struct lm048_packet (*const array)[2],
 		.length = length
 	};
 	return q;
+}
+
+enum LM048_STATUS
+lm048_write_packet(char *const buffer,
+		   size_t *const length,
+		   struct lm048_packet const *const packet)
+{
+	char const *ret = NULL;
+	switch(packet->type){
+	case LM048_AT_OK:
+		ret = CRLF "OK" CRLF;
+		break;
+	case LM048_AT_ERROR:
+		ret = CRLF "ERROR" CRLF;
+		break;
+	case LM048_AT_AT:
+		ret = "AT" CR;
+		break;
+	case LM048_AT_VER:
+		ret = ATP "VER?" CR;
+		break;
+	}
+
+	if(ret == NULL){
+		*length = 0;
+		return LM048_ERROR;
+	}
+
+	if(strlen(ret) > *length){
+		*length = strlen(ret);
+		return LM048_FULL;
+	}
+
+	strcpy(buffer, ret);
+	*length = strlen(ret);
+
+	return LM048_COMPLETED;
 }
 
 enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
@@ -119,13 +180,13 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 123 "build/lm048lib.c"
+#line 184 "build/lm048lib.c"
 	{
 	}
 
-#line 164 "build/lm048lib.rl"
+#line 225 "build/lm048lib.rl"
 		
-#line 129 "build/lm048lib.c"
+#line 190 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -141,12 +202,12 @@ case 1:
 	}
 	goto tr0;
 tr0:
-#line 24 "build/lm048lib.rl"
+#line 29 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 150 "build/lm048lib.c"
+#line 211 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -217,33 +278,33 @@ case 9:
 		goto tr11;
 	goto tr0;
 tr11:
-#line 19 "build/lm048lib.rl"
+#line 24 "build/lm048lib.rl"
 	{
 		pkt.type = LM048_AT_ERROR;
 		state->on_error_response();
 	}
 	goto st19;
 tr14:
-#line 14 "build/lm048lib.rl"
+#line 19 "build/lm048lib.rl"
 	{
 		pkt.type = LM048_AT_OK;
 		state->on_ok_response();
 	}
 	goto st19;
 tr16:
-#line 36 "build/lm048lib.rl"
+#line 41 "build/lm048lib.rl"
 	{
 		pkt.type = LM048_AT_AT;
 	}
 	goto st19;
 tr21:
-#line 40 "build/lm048lib.rl"
+#line 45 "build/lm048lib.rl"
 	{
 		pkt.type = LM048_AT_VER;
 	}
 	goto st19;
 st19:
-#line 28 "build/lm048lib.rl"
+#line 33 "build/lm048lib.rl"
 	{
 		if(state->on_completed != NULL){
 			state->on_completed();
@@ -254,7 +315,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 258 "build/lm048lib.c"
+#line 319 "build/lm048lib.c"
 	goto st0;
 st10:
 	if ( ++p == pe )
@@ -380,19 +441,19 @@ case 18:
 	case 16: 
 	case 17: 
 	case 18: 
-#line 24 "build/lm048lib.rl"
+#line 29 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 389 "build/lm048lib.c"
+#line 450 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 165 "build/lm048lib.rl"
+#line 226 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}

@@ -7,7 +7,9 @@ extern "C" {
 #include <stddef.h>
 
 #define LM048_COMMAND_DELIMETER "\x0D"
+#define LM048_RESPONSE_DELIMETER "\x0D\x0A"
 #define LM048_DEFAULT_QUEUE_LENGTH 100
+#define LM048_MINIMUM_WRITE_BUFFER 125
 
 /* Function return statuses */
 enum LM048_STATUS {
@@ -23,9 +25,12 @@ enum LM048_STATUS {
 	LM048_DEQUEUED = 4,
 	//An unexpected response has been received; the expected response
 	//has also been dequeued
-	LM048_UNEXPECTED = 5
+	LM048_UNEXPECTED = 5,
+	//Storage of some type is empty
+	LM048_EMPTY = 6
 };
 
+//Enumeration of AT commands and responses
 enum LM048_AT{
 	LM048_AT_NONE = -1,
 	LM048_AT_OK = 0,
@@ -34,8 +39,18 @@ enum LM048_AT{
 	LM048_AT_VER = 3
 };
 
+//Enumeration of AT command modifiers i.e +, -, ? and =
+enum LM048_ATM{
+	LM048_ATM_ENABLE,
+	LM048_ATM_DISABLE,
+	LM048_ATM_QUERY,
+	LM048_ATM_EQUALS
+};
+
 struct lm048_packet {
 	enum LM048_AT type;
+	enum LM048_ATM modifier;
+	char *payload;
 };
 
 struct lm048_queue {
@@ -132,12 +147,19 @@ enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
 				struct lm048_packet const command,
 				struct lm048_packet const response);
 
-enum LM048_STATUS 
-lm048_next_in_queue(struct lm048_packet const *const command);
+enum LM048_STATUS
+lm048_queue_front(struct lm048_queue const *const queue,
+		  struct lm048_packet const **command,
+		  struct lm048_packet const **response);
 
-struct lm048_queue 
-lm048_init_queue(struct lm048_packet (*const array)[2], 
+struct lm048_queue
+lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length);
+
+enum LM048_STATUS
+lm048_write_packet(char *const buffer,
+		   size_t *const length,
+		   struct lm048_packet const *const packet);
 
 #ifdef __cplusplus
 }

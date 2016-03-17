@@ -1,4 +1,9 @@
 #include "lm048lib.h"
+#include <string.h>
+
+#define CR LM048_COMMAND_DELIMETER
+#define CRLF LM048_RESPONSE_DELIMETER
+#define ATP "at+"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -129,13 +134,32 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 	return LM048_DEQUEUED;
 }
 
-enum LM048_STATUS lm048_next_in_queue(struct lm048_packet const *const pkt)
+enum LM048_STATUS lm048_queue_front(struct lm048_queue const *const queue,
+				    struct lm048_packet const **cmd,
+				    struct lm048_packet const **resp)
 {
-	return LM048_COMPLETED;
+	struct lm048_queue const *que = &default_queue;
+	if(queue != NULL){
+		que = queue;
+	}
+
+	enum LM048_STATUS ret;
+
+	if(que->front == que->back){
+		*cmd = NULL;
+		*resp = NULL;
+		ret = LM048_EMPTY;
+	}else{
+		*cmd = &(que->array[que->front][0]);
+		*resp = &(que->array[que->front][1]);
+		ret = LM048_COMPLETED;
+	}
+
+	return ret;
 }
 
-struct lm048_queue 
-lm048_init_queue(struct lm048_packet (*const array)[2],
+struct lm048_queue
+lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length)
 {
 	struct lm048_queue q = {
@@ -145,6 +169,43 @@ lm048_init_queue(struct lm048_packet (*const array)[2],
 		.length = length
 	};
 	return q;
+}
+
+enum LM048_STATUS
+lm048_write_packet(char *const buffer,
+		   size_t *const length,
+		   struct lm048_packet const *const packet)
+{
+	char const *ret = NULL;
+	switch(packet->type){
+	case LM048_AT_OK:
+		ret = CRLF "OK" CRLF;
+		break;
+	case LM048_AT_ERROR:
+		ret = CRLF "ERROR" CRLF;
+		break;
+	case LM048_AT_AT:
+		ret = "AT" CR;
+		break;
+	case LM048_AT_VER:
+		ret = ATP "VER?" CR;
+		break;
+	}
+
+	if(ret == NULL){
+		*length = 0;
+		return LM048_ERROR;
+	}
+
+	if(strlen(ret) > *length){
+		*length = strlen(ret);
+		return LM048_FULL;
+	}
+
+	strcpy(buffer, ret);
+	*length = strlen(ret);
+
+	return LM048_COMPLETED;
 }
 
 enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
