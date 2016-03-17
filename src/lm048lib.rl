@@ -208,8 +208,24 @@ lm048_write_packet(char *const buffer,
 	return LM048_COMPLETED;
 }
 
-enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
-			       char const *const data, 
+enum LM048_STATUS
+lm048_write_front_command(struct lm048_queue const *const queue,
+			 char *const buffer,
+			 size_t *const length)
+{
+	struct lm048_packet const *cmd, *resp;
+	enum LM048_STATUS s = lm048_queue_front(queue, &cmd, &resp);
+	if(s != LM048_COMPLETED){
+		*length = 0;
+		return s;
+	}
+
+	return lm048_write_packet(buffer, length, cmd);
+}
+
+
+enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
+			       char const *const data,
 			       size_t *const length)
 {
 	struct lm048_packet pkt = {

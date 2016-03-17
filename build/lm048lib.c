@@ -166,8 +166,24 @@ lm048_write_packet(char *const buffer,
 	return LM048_COMPLETED;
 }
 
-enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
-			       char const *const data, 
+enum LM048_STATUS
+lm048_write_front_command(struct lm048_queue const *const queue,
+			 char *const buffer,
+			 size_t *const length)
+{
+	struct lm048_packet const *cmd, *resp;
+	enum LM048_STATUS s = lm048_queue_front(queue, &cmd, &resp);
+	if(s != LM048_COMPLETED){
+		*length = 0;
+		return s;
+	}
+
+	return lm048_write_packet(buffer, length, cmd);
+}
+
+
+enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
+			       char const *const data,
 			       size_t *const length)
 {
 	struct lm048_packet pkt = {
@@ -180,13 +196,13 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 184 "build/lm048lib.c"
+#line 200 "build/lm048lib.c"
 	{
 	}
 
-#line 225 "build/lm048lib.rl"
+#line 241 "build/lm048lib.rl"
 		
-#line 190 "build/lm048lib.c"
+#line 206 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -207,7 +223,7 @@ tr0:
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 211 "build/lm048lib.c"
+#line 227 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -315,7 +331,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 319 "build/lm048lib.c"
+#line 335 "build/lm048lib.c"
 	goto st0;
 st10:
 	if ( ++p == pe )
@@ -446,14 +462,14 @@ case 18:
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 450 "build/lm048lib.c"
+#line 466 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 226 "build/lm048lib.rl"
+#line 242 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}

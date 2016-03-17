@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 21
+#define TESTCOUNT 22
 
 static void print_error(int cs, char c);
 static void setup();
@@ -344,6 +344,30 @@ TEST(write_at_at)
 	return strncmp(buf, at, length) == 0;
 }
 
+TEST(write_front_command)
+{
+	char const *const at = "AT\x0d";
+	struct lm048_packet cmd = {
+		.type = LM048_AT_AT
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_ERROR
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_queue_init(a, 100);
+	struct lm048_packet const *fcmd;
+	struct lm048_packet const *fresp;
+	char buf[LM048_MINIMUM_WRITE_BUFFER];
+	size_t length;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	enum LM048_STATUS s = lm048_write_front_command(&que, buf, &length);
+
+	return s == LM048_COMPLETED;
+}
 
 int main(){
 	int failed = 0;
@@ -370,7 +394,8 @@ int main(){
 		unexpected_one,
 		queue_front_empty,
 		queue_front,
-		write_at_at
+		write_at_at,
+		write_front_command
 	};
 
 	setup();

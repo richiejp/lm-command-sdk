@@ -161,6 +161,11 @@ lm048_write_packet(char *const buffer,
 		   size_t *const length,
 		   struct lm048_packet const *const packet);
 
+enum LM048_STATUS
+lm048_write_front_command(struct lm048_queue const *const queue,
+			 char *const buffer,
+			 size_t *const length);
+
 #ifdef __cplusplus
 }
 #endif
