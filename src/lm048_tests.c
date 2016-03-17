@@ -301,8 +301,6 @@ TEST(queue_front_empty)
 
 	enum LM048_STATUS s = lm048_queue_front(&que, &fcmd, &fresp);
 
-	printf("Status %d", s);
-
 	return s == LM048_EMPTY && fcmd == NULL && fresp == NULL;
 }
 
@@ -366,7 +364,7 @@ TEST(write_front_command)
 
 	enum LM048_STATUS s = lm048_write_front_command(&que, buf, &length);
 
-	return s == LM048_COMPLETED;
+	return s == LM048_COMPLETED && strncmp(at, buf, length) == 0;
 }
 
 int main(){
