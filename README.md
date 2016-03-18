@@ -1,7 +1,20 @@
 LM Command SDK
 ==============
 
-This SDK is comprised of a stand alone AT command generator/parser which operates on sequeces of bytes and a set of examples for using it.
+This SDK is comprised of a stand alone AT command generator/parser which operates on sequeces of bytes and a set of examples for using it. It is currently under heavy development and the code may change drastically between now and the first feature complete release.
+
+Currently there are separate libraries for the LM95x/LM96x and the LM048/LM780/LM072 etc. The LM048 library is more complete. In the future these will be reorganised to increase code sharing where possible.
+
+We hope to provide sample and template applications for the following languages and platforms resources permitting
+- QT Windows & Linux
+- Linux POSIX C
+- Win32 VC++
+- Windows .Net C#
+- Android Java/JNI
+- iOS Swift or Objective-C
+- ARM Cortex C
+
+The sample applications provided depends on demand and we are open to suggestions.
 
 Directories
 -----------
@@ -14,10 +27,14 @@ Directories
 Usage
 -----
 
-TODO
+Copy the files lm048lib.h and lm048lib.c from the build directory into your
+project. See the examples for details concerning particular languages and
+platforms.
 
 Building
 --------
+
+The following instructions are for generating the library from the Ragel source, in most cases it is not necessary for you to do this. 
 
 The library itself has no dependencies except the C standard library, however it requires three tools to build it:
 
@@ -43,3 +60,9 @@ Amusements
 ----------
 
 Install the xdot program on your sytem and run `ragel -Vp src/lm951lib.rl | xdot` from the SDK folder. This will show you an interactive graph of the state machine produced by Ragel for parsing the AT commands.
+
+Licensing
+---------
+
+See license.txt, the public code is licensed under the Adaptive Public License 1.0. Contact LM support if you cannot use this license in your project.
+
