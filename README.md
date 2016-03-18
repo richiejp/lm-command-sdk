@@ -64,5 +64,5 @@ Install the xdot program on your sytem and run `ragel -Vp src/lm951lib.rl | xdot
 Licensing
 ---------
 
-See license.txt, the public code is licensed under the Adaptive Public License 1.0. Contact LM support if you cannot use this license in your project.
+See license.txt, the public code is licensed under the Adaptive Public License 1.0. Contact LM support if you cannot use this license in your project. All source files are covered under this license unless it is stated otherwise. This includes files preceeding the commits which added the license. 
 
