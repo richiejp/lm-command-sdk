@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<struct id="lm048_packet" name="lm048_packet" xmlns="http://jessevdk.github.com/cldoc/1.0">
+  <brief>Encapsulates a discrete AT command or response</brief>
+  <field id="lm048_packet::type" name="type">
+    <brief>The type of AT command or response</brief>
+    <type name="LM048_AT" ref="index#LM048_AT" />
+  </field>
+  <field id="lm048_packet::modifier" name="modifier">
+    <brief>The sub type or variant</brief>
+    <type name="LM048_ATM" ref="index#LM048_ATM" />
+  </field>
+  <field id="lm048_packet::payload" name="payload">
+    <brief>Variable length data sent as part of some commands and responses</brief>
+    <type builtin="yes" name="char" qualifier="*" />
+  </field>
+</struct>

@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<struct id="lm048_queue" name="lm048_queue" xmlns="http://jessevdk.github.com/cldoc/1.0">
+  <brief>A queue of command, response pairs.</brief>
+  <doc>Various access functions are provided to avoid unexpected behaviour. It is
+not recommened to access the members directly.</doc>
+  <field id="lm048_queue::array" name="array">
+    <brief>A pointer to a two dimensional array</brief>
+    <type name="struct lm048_packet [2]" qualifier="*" />
+  </field>
+  <field id="lm048_queue::front" name="front">
+    <brief>The index of the item at the front of the queue</brief>
+    <type name="size_t" />
+  </field>
+  <field id="lm048_queue::back" name="back">
+    <brief>The index of the first *empty* slot at the back of the queue</brief>
+    <type name="size_t" />
+  </field>
+  <field id="lm048_queue::length" name="length">
+    <brief>The storage capacity of the array, *not* the current number</brief>
+    <doc>of items in the queue</doc>
+    <type name="size_t" />
+  </field>
+  <function id="lm048_enqueue" name="lm048_enqueue">
+    <brief> Add a command-response pair to the end of <ref ref="lm048_queue#lm048_enqueue::queue">queue</ref>
+    </brief>
+    <doc>Adds a <ref ref="lm048_queue#lm048_enqueue::command">command</ref> to send and an expected <ref ref="lm048_queue#lm048_enqueue::response">response</ref> to the end of a <ref ref="lm048_queue#lm048_enqueue::queue">queue</ref>.
+Multiple requests and associated expected responses can be queued up for
+later processing.
+
+</doc>
+    <return>
+      <doc><ref ref="#LM048_COMPLETED">LM048_COMPLETED</ref> on success, or <ref ref="#LM048_FULL">LM048_FULL</ref> if there is no space
+           left in the queue.</doc>
+      <type name="LM048_STATUS" ref="index#LM048_STATUS" />
+    </return>
+    <argument id="lm048_enqueue::queue" name="queue">
+      <doc>The queue</doc>
+      <type name="lm048_queue" qualifier=" const *" ref="lm048_queue#lm048_queue" />
+    </argument>
+    <argument id="lm048_enqueue::command" name="command">
+      <doc>The command to be sent, set <ref ref="lm048_packet#lm048_packet::type">lm048_packet::type</ref> to <ref ref="#LM048_AT_NONE">LM048_AT_NONE</ref>
+            if no command is to be sent</doc>
+      <type name="lm048_packet" qualifier=" const" ref="lm048_packet#lm048_packet" />
+    </argument>
+    <argument id="lm048_enqueue::response" name="response">
+      <doc>The expected response, set <ref ref="lm048_packet#lm048_packet::type">lm048_packet::type</ref> to <ref ref="#LM048_AT_NONE">LM048_AT_NONE</ref>
+             if no response is expected</doc>
+      <type name="lm048_packet" qualifier=" const" ref="lm048_packet#lm048_packet" />
+    </argument>
+  </function>
+  <function id="lm048_queue_front" name="lm048_queue_front">
+    <brief>Get the command-response pair at the front of the queue</brief>
+    <return>
+      <type name="LM048_STATUS" ref="index#LM048_STATUS" />
+    </return>
+    <argument id="lm048_queue_front::queue" name="queue">
+      <type name="lm048_queue" qualifier=" const const *" ref="lm048_queue#lm048_queue" />
+    </argument>
+    <argument id="lm048_queue_front::command" name="command">
+      <type name="lm048_packet" qualifier=" const **" ref="lm048_packet#lm048_packet" />
+    </argument>
+    <argument id="lm048_queue_front::response" name="response">
+      <type name="lm048_packet" qualifier=" const **" ref="lm048_packet#lm048_packet" />
+    </argument>
+  </function>
+  <function id="lm048_queue_init" name="lm048_queue_init">
+    <brief> Initialise a new queue structure</brief>
+    <return>
+      <doc>The new queue</doc>
+      <type name="lm048_queue" ref="lm048_queue#lm048_queue" />
+    </return>
+    <argument id="lm048_queue_init::array" name="array">
+      <doc>A pointer to a two-dimensional array of &amp;lt;lm048\_packets&amp;gt;</doc>
+      <type name="struct lm048_packet [2]" qualifier=" const *" />
+    </argument>
+    <argument id="lm048_queue_init::length" name="length">
+      <doc>The row count of <ref ref="lm048_queue#lm048_queue_init::array">array</ref></doc>
+      <type name="size_t" qualifier=" const" />
+    </argument>
+  </function>
+  <function id="lm048_write_front_command" name="lm048_write_front_command">
+    <brief> Write the command at the front of <ref ref="lm048_queue#lm048_write_front_command::queue">queue</ref> to <ref ref="lm048_queue#lm048_write_front_command::buffer">buffer</ref>
+    </brief>
+    <doc>This does not result in the front item from being dequeued.
+
+TODO Commands expecting no response should probably be dequeued
+
+</doc>
+    <return>
+      <doc>see <ref ref="lm048_queue#lm048_queue_front">lm048_queue_front</ref> and <ref ref="index#lm048_write_packet">lm048_write_packet</ref></doc>
+      <type name="LM048_STATUS" ref="index#LM048_STATUS" />
+    </return>
+    <argument id="lm048_write_front_command::queue" name="queue">
+      <doc>The queue to use or NULL to use the default one</doc>
+      <type name="lm048_queue" qualifier=" const const *" ref="lm048_queue#lm048_queue" />
+    </argument>
+    <argument id="lm048_write_front_command::buffer" name="buffer">
+      <doc>An array of at least &amp;lt;LM048\_MINIMUM\_WRITE\_BUFFER&amp;gt; if possible</doc>
+      <type builtin="yes" name="char" qualifier=" const *" />
+    </argument>
+    <argument id="lm048_write_front_command::length" name="length">
+      <doc>The length of the <ref ref="lm048_queue#lm048_write_front_command::buffer">buffer</ref> on input and how many bytes were
+           used/needed on output</doc>
+      <type name="size_t" qualifier=" const *" />
+    </argument>
+  </function>
+</struct>

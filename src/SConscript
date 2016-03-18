@@ -39,7 +39,7 @@ else:
 
 #Generate the API documentation using cldoc
 docs = env.Command( Dir('docs')
-									 ,'lm048lib.h lm951lib.h'
+									 ,['lm048lib.h', 'lm951lib.h']
 									 ,'cldoc generate -- $SOURCE --output $TARGET')
 env.Clean(docs, Glob('docs/*'))
 
