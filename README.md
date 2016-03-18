@@ -6,6 +6,7 @@ This SDK is comprised of a stand alone AT command generator/parser which operate
 Currently there are separate libraries for the LM95x/LM96x and the LM048/LM780/LM072 etc. The LM048 library is more complete. In the future these will be reorganised to increase code sharing where possible.
 
 We hope to provide sample and template applications for the following languages and platforms resources permitting
+
 - QT Windows & Linux
 - Linux POSIX C
 - Win32 VC++
