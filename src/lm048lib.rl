@@ -21,6 +21,34 @@
 #endif
 
 %%{
+	machine skipline;
+
+	main := (^'\r')* '\r' @{ fbreak; };
+	
+	write data;
+}%%
+
+enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
+{
+	if(*length > 0){
+		int cs;
+		char *p = data;
+		char *pe = p + *length;
+
+		%% write init;
+		%% write exec;
+
+		*length -= (size_t)(p - data);
+
+		if(cs == %%{ write first_final; }%%){
+			return LM048_COMPLETED;
+		}
+	}
+
+	return LM048_OK;
+}
+
+%%{
 	machine atcmd;
 
 	access state->;
@@ -59,8 +87,8 @@
 	lf = '\n';
 	crlf = cr lf;
 
-	ok = crlf 'OK' crlf @on_ok_response;
-	error = crlf 'ERROR' crlf @on_error_response;
+	ok = lf 'OK' crlf @on_ok_response;
+	error = lf 'ERROR' crlf @on_error_response;
 	command_response = ok | error;
 
 	responses = command_response; 
@@ -71,8 +99,8 @@
 
 	commands = at_at | ver;
 
-	main := (commands | responses) %~on_completed @!on_error;
-
+	main := cr* (commands | responses) %~on_completed @!on_error;
+	
 	write data;
 }%%
 
