@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 22
+#define TESTCOUNT 23
 
 static void print_error(int cs, char c);
 static void setup();
@@ -145,6 +145,18 @@ TEST(parse_ver)
 {
 	size_t l = 7;
 	return lm048_input("at+ver\x0d", &l) == LM048_COMPLETED;
+}
+
+TEST(skip_line)
+{
+	char *lines = "lsjdf sdksj lsdf\x0d""123";
+	size_t l = strlen(lines);
+
+	if(lm048_skip_line(lines, &l) != LM048_COMPLETED){
+	   return false;
+	}
+
+	return l == 3;
 }
 
 TEST(enqueue_one)
@@ -364,10 +376,8 @@ TEST(write_front_command)
 
 	struct lm048_packet a[100][2];
 	struct lm048_queue que = lm048_queue_init(a, 100);
-	struct lm048_packet const *fcmd;
-	struct lm048_packet const *fresp;
 	char buf[LM048_MINIMUM_WRITE_BUFFER];
-	size_t length;
+	size_t length = LM048_MINIMUM_WRITE_BUFFER;
 
 	lm048_enqueue(&que, cmd, resp);
 
@@ -393,6 +403,7 @@ int main(){
 		init_state,
 		parse_at_with_state,
 		parse_ver,
+		skip_line,
 		enqueue_one,
 		enqueue_many,
 		expected_one,
