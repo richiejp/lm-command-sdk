@@ -1,5 +1,14 @@
 
 #line 1 "build/lm048lib.rl"
+/** Copyright LM Technologies 2016
+ *
+ * This file is licensed under the terms of the Adaptive Public License 
+ * set forth in licenses.txt in the root directory of the LM Command SDK 
+ * repository.
+ *
+ * Author(s): Richard Palethorpe <richard@lm-technologies.com>
+ */
+
 #include "lm048lib.h"
 #include <string.h>
 
@@ -14,15 +23,88 @@
 #endif
 
 
-#line 18 "build/lm048lib.c"
+#line 27 "build/lm048lib.c"
+static const int skipline_start = 1;
+static const int skipline_first_final = 2;
+static const int skipline_error = 0;
+
+static const int skipline_en_main = 1;
+
+
+#line 29 "build/lm048lib.rl"
+
+
+enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
+{
+	if(*length > 0){
+		int cs;
+		char *p = data;
+		char *pe = p + *length;
+
+		
+#line 46 "build/lm048lib.c"
+	{
+	cs = skipline_start;
+	}
+
+#line 39 "build/lm048lib.rl"
+		
+#line 53 "build/lm048lib.c"
+	{
+	if ( p == pe )
+		goto _test_eof;
+	switch ( cs )
+	{
+st1:
+	if ( ++p == pe )
+		goto _test_eof1;
+case 1:
+	if ( (*p) == 13 )
+		goto tr1;
+	goto st1;
+tr1:
+#line 26 "build/lm048lib.rl"
+	{ {p++; cs = 2; goto _out;} }
+	goto st2;
+st2:
+	if ( ++p == pe )
+		goto _test_eof2;
+case 2:
+#line 74 "build/lm048lib.c"
+	goto st0;
+st0:
+cs = 0;
+	goto _out;
+	}
+	_test_eof1: cs = 1; goto _test_eof; 
+	_test_eof2: cs = 2; goto _test_eof; 
+
+	_test_eof: {}
+	_out: {}
+	}
+
+#line 40 "build/lm048lib.rl"
+
+		*length -= (size_t)(p - data);
+
+		if(cs == 2){
+			return LM048_COMPLETED;
+		}
+	}
+
+	return LM048_OK;
+}
+
+
+#line 100 "build/lm048lib.c"
 static const int atcmd_start = 1;
-static const int atcmd_first_final = 19;
+static const int atcmd_first_final = 18;
 static const int atcmd_error = 0;
 
 static const int atcmd_en_main = 1;
 
 
-#line 68 "build/lm048lib.rl"
+#line 105 "build/lm048lib.rl"
 
 
 void lm048_no_op(){}
@@ -196,34 +278,38 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 200 "build/lm048lib.c"
+#line 282 "build/lm048lib.c"
 	{
 	}
 
-#line 241 "build/lm048lib.rl"
+#line 278 "build/lm048lib.rl"
 		
-#line 206 "build/lm048lib.c"
+#line 288 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
 		goto _test_eof;
 	switch (  state->cs )
 	{
+st1:
+	if ( ++p == pe )
+		goto _test_eof1;
 case 1:
 	_ps = 1;
 	switch( (*p) ) {
-		case 13: goto st2;
-		case 65: goto st13;
-		case 97: goto st13;
+		case 10: goto st2;
+		case 13: goto st1;
+		case 65: goto st12;
+		case 97: goto st12;
 	}
 	goto tr0;
 tr0:
-#line 29 "build/lm048lib.rl"
+#line 66 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 227 "build/lm048lib.c"
+#line 313 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -232,18 +318,18 @@ st2:
 		goto _test_eof2;
 case 2:
 	_ps = 2;
-	if ( (*p) == 10 )
-		goto st3;
+	switch( (*p) ) {
+		case 69: goto st3;
+		case 79: goto st9;
+	}
 	goto tr0;
 st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
 	_ps = 3;
-	switch( (*p) ) {
-		case 69: goto st4;
-		case 79: goto st10;
-	}
+	if ( (*p) == 82 )
+		goto st4;
 	goto tr0;
 st4:
 	if ( ++p == pe )
@@ -258,7 +344,7 @@ st5:
 		goto _test_eof5;
 case 5:
 	_ps = 5;
-	if ( (*p) == 82 )
+	if ( (*p) == 79 )
 		goto st6;
 	goto tr0;
 st6:
@@ -266,7 +352,7 @@ st6:
 		goto _test_eof6;
 case 6:
 	_ps = 6;
-	if ( (*p) == 79 )
+	if ( (*p) == 82 )
 		goto st7;
 	goto tr0;
 st7:
@@ -274,7 +360,7 @@ st7:
 		goto _test_eof7;
 case 7:
 	_ps = 7;
-	if ( (*p) == 82 )
+	if ( (*p) == 13 )
 		goto st8;
 	goto tr0;
 st8:
@@ -282,63 +368,63 @@ st8:
 		goto _test_eof8;
 case 8:
 	_ps = 8;
-	if ( (*p) == 13 )
-		goto st9;
+	if ( (*p) == 10 )
+		goto tr11;
 	goto tr0;
+tr11:
+#line 61 "build/lm048lib.rl"
+	{
+		pkt.type = LM048_AT_ERROR;
+		state->on_error_response();
+	}
+	goto st18;
+tr14:
+#line 56 "build/lm048lib.rl"
+	{
+		pkt.type = LM048_AT_OK;
+		state->on_ok_response();
+	}
+	goto st18;
+tr16:
+#line 78 "build/lm048lib.rl"
+	{
+		pkt.type = LM048_AT_AT;
+	}
+	goto st18;
+tr21:
+#line 82 "build/lm048lib.rl"
+	{
+		pkt.type = LM048_AT_VER;
+	}
+	goto st18;
+st18:
+#line 70 "build/lm048lib.rl"
+	{
+		if(state->on_completed != NULL){
+			state->on_completed();
+		}else{
+			{p++;  state->cs = 18; goto _out;}
+		}
+	}
+	if ( ++p == pe )
+		goto _test_eof18;
+case 18:
+#line 413 "build/lm048lib.c"
+	goto st0;
 st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
 	_ps = 9;
-	if ( (*p) == 10 )
-		goto tr11;
+	if ( (*p) == 75 )
+		goto st10;
 	goto tr0;
-tr11:
-#line 24 "build/lm048lib.rl"
-	{
-		pkt.type = LM048_AT_ERROR;
-		state->on_error_response();
-	}
-	goto st19;
-tr14:
-#line 19 "build/lm048lib.rl"
-	{
-		pkt.type = LM048_AT_OK;
-		state->on_ok_response();
-	}
-	goto st19;
-tr16:
-#line 41 "build/lm048lib.rl"
-	{
-		pkt.type = LM048_AT_AT;
-	}
-	goto st19;
-tr21:
-#line 45 "build/lm048lib.rl"
-	{
-		pkt.type = LM048_AT_VER;
-	}
-	goto st19;
-st19:
-#line 33 "build/lm048lib.rl"
-	{
-		if(state->on_completed != NULL){
-			state->on_completed();
-		}else{
-			{p++;  state->cs = 19; goto _out;}
-		}
-	}
-	if ( ++p == pe )
-		goto _test_eof19;
-case 19:
-#line 335 "build/lm048lib.c"
-	goto st0;
 st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
 	_ps = 10;
-	if ( (*p) == 75 )
+	if ( (*p) == 13 )
 		goto st11;
 	goto tr0;
 st11:
@@ -346,16 +432,18 @@ st11:
 		goto _test_eof11;
 case 11:
 	_ps = 11;
-	if ( (*p) == 13 )
-		goto st12;
+	if ( (*p) == 10 )
+		goto tr14;
 	goto tr0;
 st12:
 	if ( ++p == pe )
 		goto _test_eof12;
 case 12:
 	_ps = 12;
-	if ( (*p) == 10 )
-		goto tr14;
+	switch( (*p) ) {
+		case 84: goto st13;
+		case 116: goto st13;
+	}
 	goto tr0;
 st13:
 	if ( ++p == pe )
@@ -363,8 +451,8 @@ st13:
 case 13:
 	_ps = 13;
 	switch( (*p) ) {
-		case 84: goto st14;
-		case 116: goto st14;
+		case 13: goto tr16;
+		case 43: goto st14;
 	}
 	goto tr0;
 st14:
@@ -373,8 +461,8 @@ st14:
 case 14:
 	_ps = 14;
 	switch( (*p) ) {
-		case 13: goto tr16;
-		case 43: goto st15;
+		case 86: goto st15;
+		case 118: goto st15;
 	}
 	goto tr0;
 st15:
@@ -383,8 +471,8 @@ st15:
 case 15:
 	_ps = 15;
 	switch( (*p) ) {
-		case 86: goto st16;
-		case 118: goto st16;
+		case 69: goto st16;
+		case 101: goto st16;
 	}
 	goto tr0;
 st16:
@@ -393,8 +481,8 @@ st16:
 case 16:
 	_ps = 16;
 	switch( (*p) ) {
-		case 69: goto st17;
-		case 101: goto st17;
+		case 82: goto st17;
+		case 114: goto st17;
 	}
 	goto tr0;
 st17:
@@ -402,20 +490,11 @@ st17:
 		goto _test_eof17;
 case 17:
 	_ps = 17;
-	switch( (*p) ) {
-		case 82: goto st18;
-		case 114: goto st18;
-	}
-	goto tr0;
-st18:
-	if ( ++p == pe )
-		goto _test_eof18;
-case 18:
-	_ps = 18;
 	if ( (*p) == 13 )
 		goto tr21;
 	goto tr0;
 	}
+	_test_eof1:  state->cs = 1; goto _test_eof; 
 	_test_eof2:  state->cs = 2; goto _test_eof; 
 	_test_eof3:  state->cs = 3; goto _test_eof; 
 	_test_eof4:  state->cs = 4; goto _test_eof; 
@@ -423,8 +502,8 @@ case 18:
 	_test_eof6:  state->cs = 6; goto _test_eof; 
 	_test_eof7:  state->cs = 7; goto _test_eof; 
 	_test_eof8:  state->cs = 8; goto _test_eof; 
+	_test_eof18:  state->cs = 18; goto _test_eof; 
 	_test_eof9:  state->cs = 9; goto _test_eof; 
-	_test_eof19:  state->cs = 19; goto _test_eof; 
 	_test_eof10:  state->cs = 10; goto _test_eof; 
 	_test_eof11:  state->cs = 11; goto _test_eof; 
 	_test_eof12:  state->cs = 12; goto _test_eof; 
@@ -433,7 +512,6 @@ case 18:
 	_test_eof15:  state->cs = 15; goto _test_eof; 
 	_test_eof16:  state->cs = 16; goto _test_eof; 
 	_test_eof17:  state->cs = 17; goto _test_eof; 
-	_test_eof18:  state->cs = 18; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
@@ -456,25 +534,24 @@ case 18:
 	case 15: 
 	case 16: 
 	case 17: 
-	case 18: 
-#line 29 "build/lm048lib.rl"
+#line 66 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 466 "build/lm048lib.c"
+#line 543 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 242 "build/lm048lib.rl"
+#line 279 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}
 
-	if(state->cs >= 19){
+	if(state->cs >= 18){
 		state->cs = 1;
 		return dequeue(state->queue, pkt);
 	}else if(state->cs == 0){

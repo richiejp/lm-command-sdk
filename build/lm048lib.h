@@ -176,8 +176,8 @@ void lm048_no_op_e(int cs, char c);
  *         is fully processed. Also <LM048_DEQUEUED> and <LM048_UNEXPECTED>
  *         can occure when a queue is being used, see <lm048_queue>.
  */
-enum LM048_STATUS lm048_inputs(struct lm048_parser *const state, 
-			       char const *const data, 
+enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
+			       char const *const data,
 			       size_t *const length);
 
 /* Parse the data
@@ -190,6 +190,19 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
  * @return see <lm048_parser::lm048_inputs>
  */
 enum LM048_STATUS lm048_input(char const *const data, size_t *const length);
+
+/* Finds the next newline (carriage return) character
+ * @data The text/bytes to parse
+ * @length The length of the data on input and the amount left to process on
+ *	   output
+ *
+ * Sometimes you may want to ignore all the data leading up to the next
+ * carriage return or process it via a different method. Use <length> to
+ * determine where the newline occurred.
+ *
+ * @return <LM048_COMPLETED> if a newline was found otherwise <LM048_OK>.
+ */
+enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length);
 
 /* Set the parser to the begining state
  * @state A parser's state or NULL
