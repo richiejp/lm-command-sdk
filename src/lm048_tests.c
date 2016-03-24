@@ -358,7 +358,7 @@ TEST(write_at_at)
 	char buf[LM048_MINIMUM_WRITE_BUFFER];
 	size_t length;
 
-	lm048_write_packet(buf, &length, &cmd);
+	lm048_write_packet(&cmd, buf, &length);
 
 	return strncmp(buf, at, length) == 0;
 }
