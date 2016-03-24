@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 23
+#define TESTCOUNT 24
 
 static void print_error(int cs, char c);
 static void setup();
@@ -121,6 +121,14 @@ TEST(parse_error_response)
 	size_t l = 9;
 
 	return lm048_input(error, &l) == LM048_COMPLETED;
+}
+
+TEST(parse_ver_response)
+{
+	char* version = "\x0d\x0a""FW VERSION: v6.61";
+	size_t l = 19;
+
+	return lm048_input(version, &l) == LM048_COMPLETED;
 }
 
 TEST(init_state)
@@ -403,6 +411,7 @@ int main(){
 		init_state,
 		parse_at_with_state,
 		parse_ver,
+		parse_ver_response,
 		skip_line,
 		enqueue_one,
 		enqueue_many,
