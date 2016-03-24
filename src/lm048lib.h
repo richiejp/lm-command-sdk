@@ -18,6 +18,7 @@ extern "C" {
 #define LM048_COMMAND_DELIMETER "\x0D"
 #define LM048_RESPONSE_DELIMETER "\x0D\x0A"
 #define LM048_DEFAULT_QUEUE_LENGTH 100
+#define LM048_DEFAULT_PAYLOAD_LENGTH 40
 #define LM048_MINIMUM_WRITE_BUFFER 125
 
 /* Function return statuses */
@@ -51,8 +52,10 @@ enum LM048_AT{
 	LM048_AT_ERROR = 1,
 	//The AT<cr> command
 	LM048_AT_AT = 2,
-	//The AT+VER? firmware version command
-	LM048_AT_VER = 3
+	//The AT+VER firmware version command
+	LM048_AT_VER = 3,
+	//The AT+VER firmware version response
+	LM048_AT_VER_RESPONSE = 4
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
@@ -71,10 +74,21 @@ enum LM048_ATM{
 struct lm048_packet {
 	//The type of AT command or response
 	enum LM048_AT type;
+
 	//The sub type or variant
 	enum LM048_ATM modifier;
-	//Variable length data sent as part of some commands and responses
+
+	//Variable length data sent as part of some commands and responses.
+	//Always ensure that <payload_capacity> and <payload_length> are set 
+	//correctly especially as payload may be populated from an 
+	//untrustworthy source.
 	char *payload;
+
+	//The number of meaningful bytes in <payload>
+	size_t payload_length;
+
+	//The amount of memory, in bytes, allocated to the <payload> array
+	size_t payload_capacity;
 };
 
 //A queue of command, response pairs. 
@@ -84,10 +98,13 @@ struct lm048_packet {
 struct lm048_queue {
 	//A pointer to a two dimensional array
 	struct lm048_packet (*array)[2];
+
 	//The index of the item at the front of the queue
 	size_t front;
+
 	//The index of the first *empty* slot at the back of the queue
 	size_t back;
+
 	//The storage capacity of the array, *not* the current number
 	//of items in the queue
 	size_t length;
@@ -144,6 +161,9 @@ struct lm048_parser {
 	//When an item is processed by <lm048_inputs> it is compared 
 	//against the command-response at the front of this queue.
 	struct lm048_queue *queue;
+
+	//The packet being parsed or just finished parsing
+	struct lm048_packet current;
 };
 
 #ifdef __clang__
@@ -266,9 +286,14 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
  *	   space in <buffer> and <LM048_ERROR> if <packet> is invalid.
  */
 enum LM048_STATUS
-lm048_write_packet(char *const buffer,
-		   size_t *const length,
-		   struct lm048_packet const *const packet);
+lm048_write_packet(struct lm048_packet const *const packet, 
+		   char *const buffer,
+		   size_t *const length);
+
+enum LM048_STATUS
+lm048_packet_init(struct lm048_packet *const packet,
+		  char *const payload,
+		  size_t payload_capacity);
 
 /* Write the command at the front of <queue> to <buffer>
  * @queue The queue to use or NULL to use the default one

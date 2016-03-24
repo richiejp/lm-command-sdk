@@ -54,12 +54,12 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 	access state->;
 
 	action on_ok_response {
-		pkt.type = LM048_AT_OK;
+		pkt->type = LM048_AT_OK;
 		state->on_ok_response();
 	}
 
 	action on_error_response {
-		pkt.type = LM048_AT_ERROR;
+		pkt->type = LM048_AT_ERROR;
 		state->on_error_response();
 	}
 
@@ -76,11 +76,19 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 	}
 
 	action on_at_at {
-		pkt.type = LM048_AT_AT;
+		pkt->type = LM048_AT_AT;
 	}
 
 	action on_ver {
-		pkt.type = LM048_AT_VER;
+		pkt->type = LM048_AT_VER;
+	}
+
+	action on_ver_response {
+		pkt->type = LM048_AT_VER_RESPONSE;
+	}
+
+	action add_to_payload {
+		payload_add(pkt, *p);
 	}
 
 	cr = '\r';
@@ -91,7 +99,11 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 	error = lf 'ERROR' crlf @on_error_response;
 	command_response = ok | error;
 
-	responses = command_response; 
+	ver_resp = lf 'FW VERSION:' ' '{1,5} .
+		   'v' (digit{1,2} '.' digit{2,3}) $add_to_payload .
+		   ' '{,5} crlf @on_ver_response;
+
+	responses = command_response | ver_resp; 
 
 	at = [aA][tT];
 	at_at = at cr @on_at_at;
@@ -111,7 +123,9 @@ void lm048_no_op_e(int cs, char c){}
 #pragma clang diagnostic pop
 #endif
 
-static struct lm048_packet default_queue_array[LM048_DEFAULT_QUEUE_LENGTH][2];
+static struct lm048_packet
+default_queue_array[LM048_DEFAULT_QUEUE_LENGTH][2];
+
 static struct lm048_queue default_queue = {
 	.array = default_queue_array,
 	.front = 0,
@@ -119,18 +133,47 @@ static struct lm048_queue default_queue = {
 	.length = LM048_DEFAULT_QUEUE_LENGTH
 };
 
+static char default_payload[LM048_DEFAULT_PAYLOAD_LENGTH];
 struct lm048_parser lm048_default_state = {
 	.cs = %%{ write start; }%%,
 	.on_ok_response = lm048_no_op,
 	.on_error_response = lm048_no_op,
 	.on_error = lm048_no_op_e,
 	.on_completed = NULL,
-	.queue = &default_queue
+	.queue = &default_queue,
+	.current.payload = default_payload,
+	.current.payload_length = 0,
+	.current.payload_capacity = LM048_DEFAULT_PAYLOAD_LENGTH
 };
+
+static enum LM048_STATUS payload_add(struct lm048_packet *const pkt, char c)
+{
+	if(pkt->payload_length < pkt->payload_capacity){
+		pkt->payload_length += 1;
+		pkt->payload[pkt->payload_length] = c;
+		return LM048_COMPLETED;
+	}
+
+	return LM048_FULL;
+}
+
+enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
+				char *const payload,
+				size_t payload_capacity)
+{
+	pkt->type = LM048_AT_NONE;
+	pkt->modifier = LM048_ATM_QUERY;
+	pkt->payload = payload;
+	pkt->payload_length = 0;
+	pkt->payload_capacity = payload_capacity;
+
+	return LM048_COMPLETED;
+}
 
 enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
 				struct lm048_packet const command,
-				struct lm048_packet const response){
+				struct lm048_packet const response)
+{
 	struct lm048_queue *que = queue;
 	if(que == NULL){
 		que = &default_queue;
@@ -148,7 +191,7 @@ enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
 }
 
 static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
-				 struct lm048_packet const received){
+				 struct lm048_packet const *const received){
 	if(queue->front == queue->back){
 		return LM048_COMPLETED;
 	}
@@ -156,7 +199,7 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 	struct lm048_packet *cmd_echo = &(queue->array[queue->front][0]);
 	struct lm048_packet *expected = &(queue->array[queue->front][1]);
 
-	if(cmd_echo->type == received.type){
+	if(cmd_echo->type == received->type){
 		return LM048_OK;
 	}
 
@@ -164,7 +207,7 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 		queue->front = 0;
 	}
 
-	if(expected->type != received.type){
+	if(expected->type != received->type){
 		return LM048_UNEXPECTED;
 	}
 
@@ -209,12 +252,14 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
 }
 
 enum LM048_STATUS
-lm048_write_packet(char *const buffer,
-		   size_t *const length,
-		   struct lm048_packet const *const packet)
+lm048_write_packet(struct lm048_packet const *const packet,
+		   char *const buffer,
+		   size_t *const length)
 {
 	char const *ret = NULL;
 	switch(packet->type){
+	case LM048_AT_NONE:
+		ret = "";
 	case LM048_AT_OK:
 		ret = CRLF "OK" CRLF;
 		break;
@@ -257,7 +302,7 @@ lm048_write_front_command(struct lm048_queue const *const queue,
 		return s;
 	}
 
-	return lm048_write_packet(buffer, length, cmd);
+	return lm048_write_packet(cmd, buffer, length);
 }
 
 
@@ -265,9 +310,7 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 			       char const *const data,
 			       size_t *const length)
 {
-	struct lm048_packet pkt = {
-		.type = LM048_AT_NONE
-	};
+	struct lm048_packet *pkt = &state->current;
 
 	if(*length > 0 && data != NULL){
 		char const *p = data;
@@ -293,7 +336,7 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 
 enum LM048_STATUS lm048_input(char const *const data, size_t *const length)
 {
-	enum LM048_STATUS s = 
+	enum LM048_STATUS s =
 		lm048_inputs(&lm048_default_state, data, length);
 	return s;
 }
@@ -315,5 +358,9 @@ void lm048_init(struct lm048_parser *state)
 	state->on_error = lm048_no_op_e;
 	state->on_completed = NULL;
 	state->queue = &default_queue;
+
+	lm048_packet_init(&state->current,
+			  default_payload,
+			  LM048_DEFAULT_PAYLOAD_LENGTH);
 }
 
