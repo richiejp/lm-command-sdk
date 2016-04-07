@@ -98,7 +98,7 @@ cs = 0;
 
 #line 100 "build/lm048lib.c"
 static const int atcmd_start = 1;
-static const int atcmd_first_final = 51;
+static const int atcmd_first_final = 52;
 static const int atcmd_error = 0;
 
 static const int atcmd_en_main = 1;
@@ -340,8 +340,8 @@ case 1:
 	switch( (*p) ) {
 		case 10: goto st2;
 		case 13: goto st1;
-		case 65: goto st45;
-		case 97: goto st45;
+		case 65: goto st46;
+		case 97: goto st46;
 	}
 	goto tr0;
 tr0:
@@ -362,7 +362,7 @@ case 2:
 	switch( (*p) ) {
 		case 69: goto st3;
 		case 70: goto st9;
-		case 79: goto st42;
+		case 79: goto st43;
 	}
 	goto tr0;
 st3:
@@ -419,44 +419,44 @@ tr12:
 		pkt->type = LM048_AT_ERROR;
 		state->on_error_response();
 	}
-	goto st51;
-tr41:
+	goto st52;
+tr42:
 #line 86 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_VER_RESPONSE;
 	}
-	goto st51;
-tr48:
+	goto st52;
+tr49:
 #line 56 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_OK;
 		state->on_ok_response();
 	}
-	goto st51;
-tr50:
+	goto st52;
+tr51:
 #line 78 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_AT;
 	}
-	goto st51;
-tr55:
+	goto st52;
+tr56:
 #line 82 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_VER;
 	}
-	goto st51;
-st51:
+	goto st52;
+st52:
 #line 70 "build/lm048lib.rl"
 	{
 		if(state->on_completed != NULL){
 			state->on_completed();
 		}else{
-			{p++;  state->cs = 51; goto _out;}
+			{p++;  state->cs = 52; goto _out;}
 		}
 	}
 	if ( ++p == pe )
-		goto _test_eof51;
-case 51:
+		goto _test_eof52;
+case 52:
 #line 461 "build/lm048lib.c"
 	goto st0;
 st9:
@@ -464,7 +464,7 @@ st9:
 		goto _test_eof9;
 case 9:
 	_ps = 9;
-	if ( (*p) == 87 )
+	if ( (*p) == 47 )
 		goto st10;
 	goto tr0;
 st10:
@@ -472,7 +472,7 @@ st10:
 		goto _test_eof10;
 case 10:
 	_ps = 10;
-	if ( (*p) == 32 )
+	if ( (*p) == 87 )
 		goto st11;
 	goto tr0;
 st11:
@@ -480,7 +480,7 @@ st11:
 		goto _test_eof11;
 case 11:
 	_ps = 11;
-	if ( (*p) == 86 )
+	if ( (*p) == 32 )
 		goto st12;
 	goto tr0;
 st12:
@@ -488,7 +488,7 @@ st12:
 		goto _test_eof12;
 case 12:
 	_ps = 12;
-	if ( (*p) == 69 )
+	if ( (*p) == 86 )
 		goto st13;
 	goto tr0;
 st13:
@@ -496,7 +496,7 @@ st13:
 		goto _test_eof13;
 case 13:
 	_ps = 13;
-	if ( (*p) == 82 )
+	if ( (*p) == 69 )
 		goto st14;
 	goto tr0;
 st14:
@@ -504,7 +504,7 @@ st14:
 		goto _test_eof14;
 case 14:
 	_ps = 14;
-	if ( (*p) == 83 )
+	if ( (*p) == 82 )
 		goto st15;
 	goto tr0;
 st15:
@@ -512,7 +512,7 @@ st15:
 		goto _test_eof15;
 case 15:
 	_ps = 15;
-	if ( (*p) == 73 )
+	if ( (*p) == 83 )
 		goto st16;
 	goto tr0;
 st16:
@@ -520,7 +520,7 @@ st16:
 		goto _test_eof16;
 case 16:
 	_ps = 16;
-	if ( (*p) == 79 )
+	if ( (*p) == 73 )
 		goto st17;
 	goto tr0;
 st17:
@@ -528,7 +528,7 @@ st17:
 		goto _test_eof17;
 case 17:
 	_ps = 17;
-	if ( (*p) == 78 )
+	if ( (*p) == 79 )
 		goto st18;
 	goto tr0;
 st18:
@@ -536,7 +536,7 @@ st18:
 		goto _test_eof18;
 case 18:
 	_ps = 18;
-	if ( (*p) == 58 )
+	if ( (*p) == 78 )
 		goto st19;
 	goto tr0;
 st19:
@@ -544,7 +544,7 @@ st19:
 		goto _test_eof19;
 case 19:
 	_ps = 19;
-	if ( (*p) == 32 )
+	if ( (*p) == 58 )
 		goto st20;
 	goto tr0;
 st20:
@@ -552,10 +552,8 @@ st20:
 		goto _test_eof20;
 case 20:
 	_ps = 20;
-	switch( (*p) ) {
-		case 32: goto st21;
-		case 118: goto tr25;
-	}
+	if ( (*p) == 32 )
+		goto st21;
 	goto tr0;
 st21:
 	if ( ++p == pe )
@@ -564,7 +562,7 @@ case 21:
 	_ps = 21;
 	switch( (*p) ) {
 		case 32: goto st22;
-		case 118: goto tr25;
+		case 118: goto tr26;
 	}
 	goto tr0;
 st22:
@@ -574,7 +572,7 @@ case 22:
 	_ps = 22;
 	switch( (*p) ) {
 		case 32: goto st23;
-		case 118: goto tr25;
+		case 118: goto tr26;
 	}
 	goto tr0;
 st23:
@@ -584,7 +582,7 @@ case 23:
 	_ps = 23;
 	switch( (*p) ) {
 		case 32: goto st24;
-		case 118: goto tr25;
+		case 118: goto tr26;
 	}
 	goto tr0;
 st24:
@@ -592,40 +590,33 @@ st24:
 		goto _test_eof24;
 case 24:
 	_ps = 24;
-	if ( (*p) == 118 )
-		goto tr25;
-	goto tr0;
-tr25:
-#line 94 "build/lm048lib.rl"
-	{
-		pkt->payload_length = 0;
+	switch( (*p) ) {
+		case 32: goto st25;
+		case 118: goto tr26;
 	}
-	goto st25;
+	goto tr0;
 st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 609 "build/lm048lib.c"
 	_ps = 25;
-	if ( 48 <= (*p) && (*p) <= 57 )
-		goto tr29;
+	if ( (*p) == 118 )
+		goto tr26;
 	goto tr0;
-tr29:
-#line 90 "build/lm048lib.rl"
+tr26:
+#line 94 "build/lm048lib.rl"
 	{
-		payload_add(pkt, *p);
+		pkt->payload_length = 0;
 	}
 	goto st26;
 st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 624 "build/lm048lib.c"
+#line 617 "build/lm048lib.c"
 	_ps = 26;
-	if ( (*p) == 46 )
-		goto tr30;
 	if ( 48 <= (*p) && (*p) <= 57 )
-		goto tr31;
+		goto tr30;
 	goto tr0;
 tr30:
 #line 90 "build/lm048lib.rl"
@@ -637,12 +628,14 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 641 "build/lm048lib.c"
+#line 632 "build/lm048lib.c"
 	_ps = 27;
+	if ( (*p) == 46 )
+		goto tr31;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr32;
 	goto tr0;
-tr32:
+tr31:
 #line 90 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
@@ -652,7 +645,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 656 "build/lm048lib.c"
+#line 649 "build/lm048lib.c"
 	_ps = 28;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr33;
@@ -667,29 +660,36 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 671 "build/lm048lib.c"
+#line 664 "build/lm048lib.c"
 	_ps = 29;
-	switch( (*p) ) {
-		case 13: goto st30;
-		case 32: goto st35;
-	}
 	if ( 48 <= (*p) && (*p) <= 57 )
-		goto tr36;
+		goto tr34;
 	goto tr0;
+tr34:
+#line 90 "build/lm048lib.rl"
+	{
+		payload_add(pkt, *p);
+	}
+	goto st30;
 st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
+#line 679 "build/lm048lib.c"
 	_ps = 30;
-	if ( (*p) == 10 )
-		goto st31;
+	switch( (*p) ) {
+		case 13: goto st31;
+		case 32: goto st36;
+	}
+	if ( 48 <= (*p) && (*p) <= 57 )
+		goto tr37;
 	goto tr0;
 st31:
 	if ( ++p == pe )
 		goto _test_eof31;
 case 31:
 	_ps = 31;
-	if ( (*p) == 79 )
+	if ( (*p) == 10 )
 		goto st32;
 	goto tr0;
 st32:
@@ -697,7 +697,7 @@ st32:
 		goto _test_eof32;
 case 32:
 	_ps = 32;
-	if ( (*p) == 75 )
+	if ( (*p) == 79 )
 		goto st33;
 	goto tr0;
 st33:
@@ -705,7 +705,7 @@ st33:
 		goto _test_eof33;
 case 33:
 	_ps = 33;
-	if ( (*p) == 13 )
+	if ( (*p) == 75 )
 		goto st34;
 	goto tr0;
 st34:
@@ -713,18 +713,16 @@ st34:
 		goto _test_eof34;
 case 34:
 	_ps = 34;
-	if ( (*p) == 10 )
-		goto tr41;
+	if ( (*p) == 13 )
+		goto st35;
 	goto tr0;
 st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
 	_ps = 35;
-	switch( (*p) ) {
-		case 13: goto st30;
-		case 32: goto st36;
-	}
+	if ( (*p) == 10 )
+		goto tr42;
 	goto tr0;
 st36:
 	if ( ++p == pe )
@@ -732,7 +730,7 @@ st36:
 case 36:
 	_ps = 36;
 	switch( (*p) ) {
-		case 13: goto st30;
+		case 13: goto st31;
 		case 32: goto st37;
 	}
 	goto tr0;
@@ -742,7 +740,7 @@ st37:
 case 37:
 	_ps = 37;
 	switch( (*p) ) {
-		case 13: goto st30;
+		case 13: goto st31;
 		case 32: goto st38;
 	}
 	goto tr0;
@@ -752,7 +750,7 @@ st38:
 case 38:
 	_ps = 38;
 	switch( (*p) ) {
-		case 13: goto st30;
+		case 13: goto st31;
 		case 32: goto st39;
 	}
 	goto tr0;
@@ -761,27 +759,20 @@ st39:
 		goto _test_eof39;
 case 39:
 	_ps = 39;
-	if ( (*p) == 13 )
-		goto st30;
-	goto tr0;
-tr36:
-#line 90 "build/lm048lib.rl"
-	{
-		payload_add(pkt, *p);
+	switch( (*p) ) {
+		case 13: goto st31;
+		case 32: goto st40;
 	}
-	goto st40;
+	goto tr0;
 st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 778 "build/lm048lib.c"
 	_ps = 40;
-	switch( (*p) ) {
-		case 13: goto st30;
-		case 32: goto st35;
-	}
+	if ( (*p) == 13 )
+		goto st31;
 	goto tr0;
-tr31:
+tr37:
 #line 90 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
@@ -791,25 +782,34 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 795 "build/lm048lib.c"
+#line 786 "build/lm048lib.c"
 	_ps = 41;
-	if ( (*p) == 46 )
-		goto tr30;
+	switch( (*p) ) {
+		case 13: goto st31;
+		case 32: goto st36;
+	}
 	goto tr0;
+tr32:
+#line 90 "build/lm048lib.rl"
+	{
+		payload_add(pkt, *p);
+	}
+	goto st42;
 st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
+#line 803 "build/lm048lib.c"
 	_ps = 42;
-	if ( (*p) == 75 )
-		goto st43;
+	if ( (*p) == 46 )
+		goto tr31;
 	goto tr0;
 st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
 	_ps = 43;
-	if ( (*p) == 13 )
+	if ( (*p) == 75 )
 		goto st44;
 	goto tr0;
 st44:
@@ -817,18 +817,16 @@ st44:
 		goto _test_eof44;
 case 44:
 	_ps = 44;
-	if ( (*p) == 10 )
-		goto tr48;
+	if ( (*p) == 13 )
+		goto st45;
 	goto tr0;
 st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
 	_ps = 45;
-	switch( (*p) ) {
-		case 84: goto st46;
-		case 116: goto st46;
-	}
+	if ( (*p) == 10 )
+		goto tr49;
 	goto tr0;
 st46:
 	if ( ++p == pe )
@@ -836,8 +834,8 @@ st46:
 case 46:
 	_ps = 46;
 	switch( (*p) ) {
-		case 13: goto tr50;
-		case 43: goto st47;
+		case 84: goto st47;
+		case 116: goto st47;
 	}
 	goto tr0;
 st47:
@@ -846,8 +844,8 @@ st47:
 case 47:
 	_ps = 47;
 	switch( (*p) ) {
-		case 86: goto st48;
-		case 118: goto st48;
+		case 13: goto tr51;
+		case 43: goto st48;
 	}
 	goto tr0;
 st48:
@@ -856,8 +854,8 @@ st48:
 case 48:
 	_ps = 48;
 	switch( (*p) ) {
-		case 69: goto st49;
-		case 101: goto st49;
+		case 86: goto st49;
+		case 118: goto st49;
 	}
 	goto tr0;
 st49:
@@ -866,8 +864,8 @@ st49:
 case 49:
 	_ps = 49;
 	switch( (*p) ) {
-		case 82: goto st50;
-		case 114: goto st50;
+		case 69: goto st50;
+		case 101: goto st50;
 	}
 	goto tr0;
 st50:
@@ -875,8 +873,18 @@ st50:
 		goto _test_eof50;
 case 50:
 	_ps = 50;
+	switch( (*p) ) {
+		case 82: goto st51;
+		case 114: goto st51;
+	}
+	goto tr0;
+st51:
+	if ( ++p == pe )
+		goto _test_eof51;
+case 51:
+	_ps = 51;
 	if ( (*p) == 13 )
-		goto tr55;
+		goto tr56;
 	goto tr0;
 	}
 	_test_eof1:  state->cs = 1; goto _test_eof; 
@@ -887,7 +895,7 @@ case 50:
 	_test_eof6:  state->cs = 6; goto _test_eof; 
 	_test_eof7:  state->cs = 7; goto _test_eof; 
 	_test_eof8:  state->cs = 8; goto _test_eof; 
-	_test_eof51:  state->cs = 51; goto _test_eof; 
+	_test_eof52:  state->cs = 52; goto _test_eof; 
 	_test_eof9:  state->cs = 9; goto _test_eof; 
 	_test_eof10:  state->cs = 10; goto _test_eof; 
 	_test_eof11:  state->cs = 11; goto _test_eof; 
@@ -930,6 +938,7 @@ case 50:
 	_test_eof48:  state->cs = 48; goto _test_eof; 
 	_test_eof49:  state->cs = 49; goto _test_eof; 
 	_test_eof50:  state->cs = 50; goto _test_eof; 
+	_test_eof51:  state->cs = 51; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
@@ -985,12 +994,13 @@ case 50:
 	case 48: 
 	case 49: 
 	case 50: 
+	case 51: 
 #line 66 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 994 "build/lm048lib.c"
+#line 1004 "build/lm048lib.c"
 	}
 	}
 
@@ -1002,7 +1012,7 @@ case 50:
 		*length = *length - (size_t)(p - data);
 	}
 
-	if(state->cs >= 51){
+	if(state->cs >= 52){
 		state->cs = 1;
 		return dequeue(state->queue, pkt);
 	}else if(state->cs == 0){
