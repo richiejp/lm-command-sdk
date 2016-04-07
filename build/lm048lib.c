@@ -202,6 +202,18 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 		return LM048_UNEXPECTED;
 	}
 
+	if(expected->payload_length != received->payload_length){
+		return LM048_UNEXPECTED;
+	}
+
+	if(expected->payload_length > 0 &&
+	   strncmp(expected->payload,
+		   received->payload,
+		   expected->payload_length) != 0)
+	{
+		return LM048_UNEXPECTED;
+	}
+
 	return LM048_DEQUEUED;
 }
 
@@ -309,13 +321,13 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 313 "build/lm048lib.c"
+#line 325 "build/lm048lib.c"
 	{
 	}
 
-#line 328 "build/lm048lib.rl"
+#line 340 "build/lm048lib.rl"
 		
-#line 319 "build/lm048lib.c"
+#line 331 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -340,7 +352,7 @@ tr0:
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 344 "build/lm048lib.c"
+#line 356 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -447,7 +459,7 @@ st51:
 	if ( ++p == pe )
 		goto _test_eof51;
 case 51:
-#line 451 "build/lm048lib.c"
+#line 463 "build/lm048lib.c"
 	goto st0;
 st9:
 	if ( ++p == pe )
@@ -595,7 +607,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 599 "build/lm048lib.c"
+#line 611 "build/lm048lib.c"
 	_ps = 25;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr29;
@@ -610,7 +622,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 614 "build/lm048lib.c"
+#line 626 "build/lm048lib.c"
 	_ps = 26;
 	if ( (*p) == 46 )
 		goto tr30;
@@ -627,7 +639,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 631 "build/lm048lib.c"
+#line 643 "build/lm048lib.c"
 	_ps = 27;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr32;
@@ -642,7 +654,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 646 "build/lm048lib.c"
+#line 658 "build/lm048lib.c"
 	_ps = 28;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr33;
@@ -657,7 +669,7 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 661 "build/lm048lib.c"
+#line 673 "build/lm048lib.c"
 	_ps = 29;
 	switch( (*p) ) {
 		case 13: goto st30;
@@ -764,7 +776,7 @@ st40:
 	if ( ++p == pe )
 		goto _test_eof40;
 case 40:
-#line 768 "build/lm048lib.c"
+#line 780 "build/lm048lib.c"
 	_ps = 40;
 	switch( (*p) ) {
 		case 13: goto st30;
@@ -781,7 +793,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 785 "build/lm048lib.c"
+#line 797 "build/lm048lib.c"
 	_ps = 41;
 	if ( (*p) == 46 )
 		goto tr30;
@@ -980,14 +992,14 @@ case 50:
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 984 "build/lm048lib.c"
+#line 996 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 329 "build/lm048lib.rl"
+#line 341 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}
