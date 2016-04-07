@@ -125,16 +125,16 @@ TEST(parse_error_response)
 
 TEST(parse_ver_response)
 {
-	char* version = "\x0d\x0a""FW VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
-	size_t l = 25;
+	char* version = "\x0d\x0a""F/W VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	size_t l = 26;
 
 	return lm048_input(version, &l) == LM048_COMPLETED;
 }
 
 TEST(parse_ver_response_payload)
 {
-	char* version = "\x0d\x0a""FW VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
-	size_t l = 25;
+	char* version = "\x0d\x0a""F/W VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	size_t l = 26;
 
 	lm048_input(version, &l);
 	char buf[LM048_DEFAULT_PAYLOAD_LENGTH + 1];
@@ -275,7 +275,7 @@ TEST(expected_one_echo)
 
 TEST(expected_one_ver)
 {
-	char* version = "\x0d\x0a""FW VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	char* version = "\x0d\x0a""F/W VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
 	size_t l = strlen(version);
 
 	struct lm048_packet cmd = {

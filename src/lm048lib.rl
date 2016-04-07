@@ -105,7 +105,7 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 			   (ok @on_ok_response | 
 			    error @on_error_response);
 
-	ver_resp = lf 'FW VERSION:' ' '{1,5} .
+	ver_resp = lf 'F/W VERSION:' ' '{1,5} .
 		   'v' @clear_payload .
 		   (digit{1,2} '.' digit{2,3}) $add_to_payload .
 		   ' '{,5} crlf ok @on_ver_response;
