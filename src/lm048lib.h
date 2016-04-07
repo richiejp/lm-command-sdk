@@ -312,6 +312,27 @@ lm048_write_front_command(struct lm048_queue const *const queue,
 			 char *const buffer,
 			 size_t *const length);
 
+/* Copies the <lm048_packet::payload> to a null terminated string
+ * @packet The packet to get the payload from or NULL to use the
+ *	   <lm048_parser::current> packet in the <lm048_default_state> 
+ * @buffer An array with a length which is one greater than the capacity
+ *	   of the payload being copied
+ * @length The length of <buffer>
+ *
+ * The payload inside of the <lm048_packet> structure is not null
+ * terminated and often the same packet structure is overwritten on 
+ * successive calls to <lm048_parser::lm048_inputs>. This function copies
+ * the payload to a place of your choosing and adds null termination.
+ *
+ * @return <LM048_COMPLETED> on success, <LM048_OK> if there is nothing
+ *	   to do and <LM048_FULL> if there is not enough space in the
+ *	   target buffer
+ */
+enum LM048_STATUS
+lm048_packet_payload(struct lm048_packet const *const packet,
+		     char *const buffer,
+		     size_t const length);
+
 #ifdef __cplusplus
 }
 #endif

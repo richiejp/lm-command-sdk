@@ -91,17 +91,24 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 		payload_add(pkt, *p);
 	}
 
+	action clear_payload {
+		pkt->payload_length = 0;
+	}
+
 	cr = '\r';
 	lf = '\n';
 	crlf = cr lf;
 
-	ok = lf 'OK' crlf @on_ok_response;
-	error = lf 'ERROR' crlf @on_error_response;
-	command_response = ok | error;
+	ok = 'OK' crlf; 
+	error = 'ERROR' crlf;
+	command_response = lf .
+			   (ok @on_ok_response | 
+			    error @on_error_response);
 
 	ver_resp = lf 'FW VERSION:' ' '{1,5} .
-		   'v' (digit{1,2} '.' digit{2,3}) $add_to_payload .
-		   ' '{,5} crlf @on_ver_response;
+		   'v' @clear_payload .
+		   (digit{1,2} '.' digit{2,3}) $add_to_payload .
+		   ' '{,5} crlf ok @on_ver_response;
 
 	responses = command_response | ver_resp; 
 
@@ -149,8 +156,8 @@ struct lm048_parser lm048_default_state = {
 static enum LM048_STATUS payload_add(struct lm048_packet *const pkt, char c)
 {
 	if(pkt->payload_length < pkt->payload_capacity){
-		pkt->payload_length += 1;
 		pkt->payload[pkt->payload_length] = c;
+		pkt->payload_length += 1;
 		return LM048_COMPLETED;
 	}
 
@@ -310,7 +317,7 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 			       char const *const data,
 			       size_t *const length)
 {
-	struct lm048_packet *pkt = &state->current;
+	struct lm048_packet *const pkt = &state->current;
 
 	if(*length > 0 && data != NULL){
 		char const *p = data;
@@ -364,3 +371,28 @@ void lm048_init(struct lm048_parser *state)
 			  LM048_DEFAULT_PAYLOAD_LENGTH);
 }
 
+enum LM048_STATUS
+lm048_packet_payload(struct lm048_packet const *const packet,
+		     char *const buffer,
+		     size_t const length)
+{
+	struct lm048_packet const *pkt =
+		&(lm048_default_state.current);
+
+	if(packet != NULL){
+		pkt = packet;
+	}
+
+	if(length <= pkt->payload_capacity){
+		return LM048_FULL;
+	}
+
+	if(pkt->payload_length < 1){
+		return LM048_OK;
+	}
+
+	memcpy(buffer, pkt->payload, pkt->payload_length);
+	buffer[pkt->payload_length] = '\0';
+
+	return LM048_COMPLETED;
+}

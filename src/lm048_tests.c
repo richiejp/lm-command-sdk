@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 24
+#define TESTCOUNT 25
 
 static void print_error(int cs, char c);
 static void setup();
@@ -125,10 +125,26 @@ TEST(parse_error_response)
 
 TEST(parse_ver_response)
 {
-	char* version = "\x0d\x0a""FW VERSION: v6.61";
-	size_t l = 19;
+	char* version = "\x0d\x0a""FW VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	size_t l = 25;
 
 	return lm048_input(version, &l) == LM048_COMPLETED;
+}
+
+TEST(parse_ver_response_payload)
+{
+	char* version = "\x0d\x0a""FW VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	size_t l = 25;
+
+	lm048_input(version, &l);
+	char buf[LM048_DEFAULT_PAYLOAD_LENGTH + 1];
+	lm048_packet_payload(NULL, buf, LM048_DEFAULT_PAYLOAD_LENGTH + 1);
+
+	printf("Payload(%d): %s\n",
+	       lm048_default_state.current.payload_length,
+	       buf);
+
+	return strcmp("6.61", buf) == 0;
 }
 
 TEST(init_state)
@@ -412,6 +428,7 @@ int main(){
 		parse_at_with_state,
 		parse_ver,
 		parse_ver_response,
+		parse_ver_response_payload,
 		skip_line,
 		enqueue_one,
 		enqueue_many,
