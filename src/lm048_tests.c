@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 25
+#define TESTCOUNT 26
 
 static void print_error(int cs, char c);
 static void setup();
@@ -273,6 +273,34 @@ TEST(expected_one_echo)
 	return lm048_inputs(&state, ok, &l) == LM048_DEQUEUED;
 }
 
+TEST(expected_one_ver)
+{
+	char* version = "\x0d\x0a""FW VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	size_t l = strlen(version);
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_VER
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_VER_RESPONSE,
+		.payload = "6.61",
+		.payload_length = 4,
+		.payload_capacity = 4
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_queue_init(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	return lm048_inputs(&state, version, &l) == LM048_DEQUEUED;
+}
+
 TEST(expected_many_echo)
 {
 	char const *const at = "AT\x0D";
@@ -434,6 +462,7 @@ int main(){
 		enqueue_many,
 		expected_one,
 		expected_one_echo,
+		expected_one_ver,
 		expected_many_echo,
 		unexpected_one,
 		queue_front_empty,

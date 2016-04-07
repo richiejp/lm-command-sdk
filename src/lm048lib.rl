@@ -218,6 +218,18 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 		return LM048_UNEXPECTED;
 	}
 
+	if(expected->payload_length != received->payload_length){
+		return LM048_UNEXPECTED;
+	}
+
+	if(expected->payload_length > 0 &&
+	   strncmp(expected->payload,
+		   received->payload,
+		   expected->payload_length) != 0)
+	{
+		return LM048_UNEXPECTED;
+	}
+
 	return LM048_DEQUEUED;
 }
 
