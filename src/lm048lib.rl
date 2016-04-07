@@ -289,11 +289,9 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		ret = "AT" CR;
 		break;
 	case LM048_AT_VER:
-		ret = ATP "VER?" CR;
+		ret = ATP "VER" CR;
 		break;
-	}
-
-	if(ret == NULL){
+	default:
 		*length = 0;
 		return LM048_ERROR;
 	}
