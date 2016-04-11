@@ -275,7 +275,10 @@ TEST(expected_one_echo)
 
 TEST(expected_one_ver)
 {
-	char* version = "\x0d\x0a""F/W VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
+	char const *const ver = "AT+VER\x0D";
+	size_t la = strlen(ver);
+	char const *const version =
+		"\x0d\x0a""F/W VERSION: v6.61\x0d\x0a""OK\x0d\x0a";
 	size_t l = strlen(version);
 
 	struct lm048_packet cmd = {
@@ -298,6 +301,9 @@ TEST(expected_one_ver)
 
 	lm048_enqueue(&que, cmd, resp);
 
+	if(lm048_inputs(&state, ver, &la) != LM048_OK){
+		return false;
+	}
 	return lm048_inputs(&state, version, &l) == LM048_DEQUEUED;
 }
 
