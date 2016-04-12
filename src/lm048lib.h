@@ -9,6 +9,35 @@
 
 #ifndef LM048LIB_H
 #define LM048LIB_H
+
+#if defined _WIN32 || defined __CYGWIN__
+  #define LM048_HELPER_DLL_IMPORT __declspec(dllimport)
+  #define LM048_HELPER_DLL_EXPORT __declspec(dllexport)
+  #define LM048_HELPER_DLL_LOCAL
+#else
+  #if __GNUC__ >= 4 || defined __CLANG__
+    #define LM048_HELPER_DLL_IMPORT __attribute__ ((visibility ("default")))
+    #define LM048_HELPER_DLL_EXPORT __attribute__ ((visibility ("default")))
+    #define LM048_HELPER_DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+  #else
+    #define LM048_HELPER_DLL_IMPORT
+    #define LM048_HELPER_DLL_EXPORT
+    #define LM048_HELPER_DLL_LOCAL
+  #endif
+#endif
+
+#ifdef LM048_DLL
+  #ifdef LM048_DLL_EXPORTS // defined if we are building the LM048 DLL (instead of using it)
+    #define LM048_API LM048_HELPER_DLL_EXPORT
+  #else
+    #define LM048_API LM048_HELPER_DLL_IMPORT
+  #endif // LM048_DLL_EXPORTS
+  #define LM048_LOCAL LM048_HELPER_DLL_LOCAL
+#else
+  #define LM048_API
+  #define LM048_LOCAL
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
