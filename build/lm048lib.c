@@ -98,13 +98,13 @@ cs = 0;
 
 #line 100 "build/lm048lib.c"
 static const int atcmd_start = 1;
-static const int atcmd_first_final = 52;
+static const int atcmd_first_final = 57;
 static const int atcmd_error = 0;
 
 static const int atcmd_en_main = 1;
 
 
-#line 124 "build/lm048lib.rl"
+#line 152 "build/lm048lib.rl"
 
 
 void lm048_no_op(){}
@@ -153,7 +153,7 @@ enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
 				size_t payload_capacity)
 {
 	pkt->type = LM048_AT_NONE;
-	pkt->modifier = LM048_ATM_QUERY;
+	pkt->modifier = LM048_ATM_GET;
 	pkt->payload = payload;
 	pkt->payload_length = 0;
 	pkt->payload_capacity = payload_capacity;
@@ -259,35 +259,81 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		   char *const buffer,
 		   size_t *const length)
 {
-	char const *ret = NULL;
+	size_t len = 0;
+	char const *cmd = "";
+	char const *mod = "";
+	enum LM048_ATM emod = packet->modifier;
 	switch(packet->type){
 	case LM048_AT_NONE:
-		ret = "";
+		cmd = "";
 	case LM048_AT_OK:
-		ret = CRLF "OK" CRLF;
+		cmd = CRLF "OK" CRLF;
+		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_ERROR:
-		ret = CRLF "ERROR" CRLF;
+		cmd = CRLF "ERROR" CRLF;
+		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_AT:
-		ret = "AT" CR;
+		cmd = "AT" CR;
+		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_VER:
-		ret = ATP "VER" CR;
+		cmd = ATP "VER" CR;
+		emod = LM048_ATM_NONE;
+		break;
+	case LM048_AT_PIN:
+		cmd = ATP "PIN";
 		break;
 	default:
 		*length = 0;
 		return LM048_ERROR;
 	}
 
-	if(strlen(ret) > *length){
-		*length = strlen(ret);
+	switch(emod){
+	case LM048_ATM_ENABLE:
+		mod = "+" CR;
+		break;
+	case LM048_ATM_DISABLE:
+		mod = "-" CR;
+		break;
+	case LM048_ATM_GET:
+		mod = "?" CR;
+		break;
+	case LM048_ATM_SET:
+		mod = "=";
+		break;
+	case LM048_ATM_NONE:
+		break;
+	}
+
+	len = strlen(cmd) + strlen(mod);
+	if(emod == LM048_ATM_SET){
+		// +1 for CR
+		len += packet->payload_length + 1;
+	}
+	if(len > *length){
+		*length = len;
 		return LM048_FULL;
 	}
 
-	strcpy(buffer, ret);
-	*length = strlen(ret);
+	strcpy(buffer, cmd);
 
+	if(emod != LM048_ATM_NONE){
+		strncpy(buffer + strlen(cmd), mod, strlen(mod));
+	}
+	if(emod == LM048_ATM_SET){
+		if(packet->payload_length < 1){
+			*length = 0;
+			return LM048_ERROR;
+		}
+		strncpy(buffer + strlen(cmd) + strlen(mod),
+			packet->payload,
+			packet->payload_length);
+		strncpy(buffer + len, CR, 1);
+	}
+
+	*length = len;
 	return LM048_COMPLETED;
 }
 
@@ -319,13 +365,13 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 323 "build/lm048lib.c"
+#line 369 "build/lm048lib.c"
 	{
 	}
 
-#line 338 "build/lm048lib.rl"
+#line 412 "build/lm048lib.rl"
 		
-#line 329 "build/lm048lib.c"
+#line 375 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -350,7 +396,7 @@ tr0:
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 354 "build/lm048lib.c"
+#line 400 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -419,45 +465,39 @@ tr12:
 		pkt->type = LM048_AT_ERROR;
 		state->on_error_response();
 	}
-	goto st52;
+	goto st57;
 tr42:
 #line 86 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_VER_RESPONSE;
 	}
-	goto st52;
+	goto st57;
 tr49:
 #line 56 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_OK;
 		state->on_ok_response();
 	}
-	goto st52;
+	goto st57;
 tr51:
 #line 78 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_AT;
 	}
-	goto st52;
-tr56:
-#line 82 "build/lm048lib.rl"
-	{
-		pkt->type = LM048_AT_VER;
-	}
-	goto st52;
-st52:
+	goto st57;
+st57:
 #line 70 "build/lm048lib.rl"
 	{
 		if(state->on_completed != NULL){
 			state->on_completed();
 		}else{
-			{p++;  state->cs = 52; goto _out;}
+			{p++;  state->cs = 57; goto _out;}
 		}
 	}
 	if ( ++p == pe )
-		goto _test_eof52;
-case 52:
-#line 461 "build/lm048lib.c"
+		goto _test_eof57;
+case 57:
+#line 501 "build/lm048lib.c"
 	goto st0;
 st9:
 	if ( ++p == pe )
@@ -604,7 +644,7 @@ case 25:
 		goto tr26;
 	goto tr0;
 tr26:
-#line 94 "build/lm048lib.rl"
+#line 98 "build/lm048lib.rl"
 	{
 		pkt->payload_length = 0;
 	}
@@ -613,13 +653,13 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 617 "build/lm048lib.c"
+#line 657 "build/lm048lib.c"
 	_ps = 26;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr30;
 	goto tr0;
 tr30:
-#line 90 "build/lm048lib.rl"
+#line 94 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -628,7 +668,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 632 "build/lm048lib.c"
+#line 672 "build/lm048lib.c"
 	_ps = 27;
 	if ( (*p) == 46 )
 		goto tr31;
@@ -636,7 +676,7 @@ case 27:
 		goto tr32;
 	goto tr0;
 tr31:
-#line 90 "build/lm048lib.rl"
+#line 94 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -645,13 +685,13 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 649 "build/lm048lib.c"
+#line 689 "build/lm048lib.c"
 	_ps = 28;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr33;
 	goto tr0;
 tr33:
-#line 90 "build/lm048lib.rl"
+#line 94 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -660,13 +700,13 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 664 "build/lm048lib.c"
+#line 704 "build/lm048lib.c"
 	_ps = 29;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr34;
 	goto tr0;
 tr34:
-#line 90 "build/lm048lib.rl"
+#line 94 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -675,7 +715,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 679 "build/lm048lib.c"
+#line 719 "build/lm048lib.c"
 	_ps = 30;
 	switch( (*p) ) {
 		case 13: goto st31;
@@ -773,7 +813,7 @@ case 40:
 		goto st31;
 	goto tr0;
 tr37:
-#line 90 "build/lm048lib.rl"
+#line 94 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -782,7 +822,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 786 "build/lm048lib.c"
+#line 826 "build/lm048lib.c"
 	_ps = 41;
 	switch( (*p) ) {
 		case 13: goto st31;
@@ -790,7 +830,7 @@ case 41:
 	}
 	goto tr0;
 tr32:
-#line 90 "build/lm048lib.rl"
+#line 94 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -799,7 +839,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 803 "build/lm048lib.c"
+#line 843 "build/lm048lib.c"
 	_ps = 42;
 	if ( (*p) == 46 )
 		goto tr31;
@@ -854,8 +894,10 @@ st48:
 case 48:
 	_ps = 48;
 	switch( (*p) ) {
-		case 86: goto st49;
-		case 118: goto st49;
+		case 80: goto st49;
+		case 86: goto st55;
+		case 112: goto st49;
+		case 118: goto st55;
 	}
 	goto tr0;
 st49:
@@ -864,8 +906,8 @@ st49:
 case 49:
 	_ps = 49;
 	switch( (*p) ) {
-		case 69: goto st50;
-		case 101: goto st50;
+		case 73: goto st50;
+		case 105: goto st50;
 	}
 	goto tr0;
 st50:
@@ -874,8 +916,8 @@ st50:
 case 50:
 	_ps = 50;
 	switch( (*p) ) {
-		case 82: goto st51;
-		case 114: goto st51;
+		case 78: goto st51;
+		case 110: goto st51;
 	}
 	goto tr0;
 st51:
@@ -883,8 +925,127 @@ st51:
 		goto _test_eof51;
 case 51:
 	_ps = 51;
+	switch( (*p) ) {
+		case 43: goto tr57;
+		case 45: goto tr58;
+		case 61: goto tr59;
+		case 63: goto tr60;
+	}
+	goto tr0;
+tr57:
+#line 102 "build/lm048lib.rl"
+	{
+		pkt->modifier = LM048_ATM_ENABLE;
+	}
+#line 90 "build/lm048lib.rl"
+	{
+		pkt->type = LM048_AT_PIN;
+	}
+	goto st52;
+tr58:
+#line 106 "build/lm048lib.rl"
+	{
+		pkt->modifier = LM048_ATM_DISABLE;
+	}
+#line 90 "build/lm048lib.rl"
+	{
+		pkt->type = LM048_AT_PIN;
+	}
+	goto st52;
+tr60:
+#line 110 "build/lm048lib.rl"
+	{
+		pkt->modifier = LM048_ATM_GET;
+	}
+#line 90 "build/lm048lib.rl"
+	{
+		pkt->type = LM048_AT_PIN;
+	}
+	goto st52;
+tr64:
+#line 82 "build/lm048lib.rl"
+	{
+		pkt->type = LM048_AT_VER;
+	}
+	goto st52;
+st52:
+	if ( ++p == pe )
+		goto _test_eof52;
+case 52:
+#line 976 "build/lm048lib.c"
+	_ps = 52;
 	if ( (*p) == 13 )
-		goto tr56;
+		goto st57;
+	goto tr0;
+tr59:
+#line 114 "build/lm048lib.rl"
+	{
+		pkt->modifier = LM048_ATM_SET;
+	}
+#line 98 "build/lm048lib.rl"
+	{
+		pkt->payload_length = 0;
+	}
+	goto st53;
+st53:
+	if ( ++p == pe )
+		goto _test_eof53;
+case 53:
+#line 995 "build/lm048lib.c"
+	_ps = 53;
+	if ( (*p) == 9 )
+		goto tr62;
+	if ( (*p) > 12 ) {
+		if ( 32 <= (*p) && (*p) <= 126 )
+			goto tr62;
+	} else if ( (*p) >= 11 )
+		goto tr62;
+	goto tr0;
+tr62:
+#line 94 "build/lm048lib.rl"
+	{
+		payload_add(pkt, *p);
+	}
+#line 90 "build/lm048lib.rl"
+	{
+		pkt->type = LM048_AT_PIN;
+	}
+	goto st54;
+st54:
+	if ( ++p == pe )
+		goto _test_eof54;
+case 54:
+#line 1019 "build/lm048lib.c"
+	_ps = 54;
+	switch( (*p) ) {
+		case 9: goto tr62;
+		case 13: goto st57;
+	}
+	if ( (*p) > 12 ) {
+		if ( 32 <= (*p) && (*p) <= 126 )
+			goto tr62;
+	} else if ( (*p) >= 11 )
+		goto tr62;
+	goto tr0;
+st55:
+	if ( ++p == pe )
+		goto _test_eof55;
+case 55:
+	_ps = 55;
+	switch( (*p) ) {
+		case 69: goto st56;
+		case 101: goto st56;
+	}
+	goto tr0;
+st56:
+	if ( ++p == pe )
+		goto _test_eof56;
+case 56:
+	_ps = 56;
+	switch( (*p) ) {
+		case 82: goto tr64;
+		case 114: goto tr64;
+	}
 	goto tr0;
 	}
 	_test_eof1:  state->cs = 1; goto _test_eof; 
@@ -895,7 +1056,7 @@ case 51:
 	_test_eof6:  state->cs = 6; goto _test_eof; 
 	_test_eof7:  state->cs = 7; goto _test_eof; 
 	_test_eof8:  state->cs = 8; goto _test_eof; 
-	_test_eof52:  state->cs = 52; goto _test_eof; 
+	_test_eof57:  state->cs = 57; goto _test_eof; 
 	_test_eof9:  state->cs = 9; goto _test_eof; 
 	_test_eof10:  state->cs = 10; goto _test_eof; 
 	_test_eof11:  state->cs = 11; goto _test_eof; 
@@ -939,6 +1100,11 @@ case 51:
 	_test_eof49:  state->cs = 49; goto _test_eof; 
 	_test_eof50:  state->cs = 50; goto _test_eof; 
 	_test_eof51:  state->cs = 51; goto _test_eof; 
+	_test_eof52:  state->cs = 52; goto _test_eof; 
+	_test_eof53:  state->cs = 53; goto _test_eof; 
+	_test_eof54:  state->cs = 54; goto _test_eof; 
+	_test_eof55:  state->cs = 55; goto _test_eof; 
+	_test_eof56:  state->cs = 56; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
@@ -995,24 +1161,29 @@ case 51:
 	case 49: 
 	case 50: 
 	case 51: 
+	case 52: 
+	case 53: 
+	case 54: 
+	case 55: 
+	case 56: 
 #line 66 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 1004 "build/lm048lib.c"
+#line 1175 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 339 "build/lm048lib.rl"
+#line 413 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}
 
-	if(state->cs >= 52){
+	if(state->cs >= 57){
 		state->cs = 1;
 		return dequeue(state->queue, pkt);
 	}else if(state->cs == 0){
