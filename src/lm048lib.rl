@@ -95,6 +95,22 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 		pkt->payload_length = 0;
 	}
 
+	action on_enable_mod {
+		pkt->modifier = LM048_ATM_ENABLE;
+	}
+
+	action on_disable_mod {
+		pkt->modifier = LM048_ATM_DISABLE;
+	}
+
+	action on_get_mod {
+		pkt->modifier = LM048_ATM_GET;
+	}
+
+	action on_set_mod {
+		pkt->modifier = LM048_ATM_SET;
+	}
+
 	cr = '\r';
 	lf = '\n';
 	crlf = cr lf;
@@ -112,11 +128,19 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 
 	responses = command_response | ver_resp; 
 
-	at = [aA][tT];
-	at_at = at cr @on_at_at;
-	ver = at '+' [vV][eE][rR] cr @on_ver;
+	on = '+' @on_enable_mod;
+	off = '-' @on_disable_mod;
+	get = '?' @on_get_mod;
+	set = '=' @on_set_mod;
 
-	commands = at_at | ver;
+	at = [aA][tT];
+	ver = [vV][eE][rR] @on_ver;
+	pin = [pP][iI][nN] .
+		(on | off | get | 
+		 set @clear_payload .
+		 (alnum | punct | [\t\v\f ])+ @add_to_payload);
+
+	commands = at (cr @on_at_at | ('+' (ver | pin) cr));
 
 	main := cr* (commands | responses) %~on_completed @!on_error;
 	
@@ -169,7 +193,7 @@ enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
 				size_t payload_capacity)
 {
 	pkt->type = LM048_AT_NONE;
-	pkt->modifier = LM048_ATM_QUERY;
+	pkt->modifier = LM048_ATM_GET;
 	pkt->payload = payload;
 	pkt->payload_length = 0;
 	pkt->payload_capacity = payload_capacity;
@@ -275,35 +299,81 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		   char *const buffer,
 		   size_t *const length)
 {
-	char const *ret = NULL;
+	size_t len = 0;
+	char const *cmd = "";
+	char const *mod = "";
+	enum LM048_ATM emod = packet->modifier;
 	switch(packet->type){
 	case LM048_AT_NONE:
-		ret = "";
+		cmd = "";
 	case LM048_AT_OK:
-		ret = CRLF "OK" CRLF;
+		cmd = CRLF "OK" CRLF;
+		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_ERROR:
-		ret = CRLF "ERROR" CRLF;
+		cmd = CRLF "ERROR" CRLF;
+		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_AT:
-		ret = "AT" CR;
+		cmd = "AT" CR;
+		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_VER:
-		ret = ATP "VER" CR;
+		cmd = ATP "VER" CR;
+		emod = LM048_ATM_NONE;
+		break;
+	case LM048_AT_PIN:
+		cmd = ATP "PIN";
 		break;
 	default:
 		*length = 0;
 		return LM048_ERROR;
 	}
 
-	if(strlen(ret) > *length){
-		*length = strlen(ret);
+	switch(emod){
+	case LM048_ATM_ENABLE:
+		mod = "+" CR;
+		break;
+	case LM048_ATM_DISABLE:
+		mod = "-" CR;
+		break;
+	case LM048_ATM_GET:
+		mod = "?" CR;
+		break;
+	case LM048_ATM_SET:
+		mod = "=";
+		break;
+	case LM048_ATM_NONE:
+		break;
+	}
+
+	len = strlen(cmd) + strlen(mod);
+	if(emod == LM048_ATM_SET){
+		// +1 for CR
+		len += packet->payload_length + 1;
+	}
+	if(len > *length){
+		*length = len;
 		return LM048_FULL;
 	}
 
-	strcpy(buffer, ret);
-	*length = strlen(ret);
+	strcpy(buffer, cmd);
 
+	if(emod != LM048_ATM_NONE){
+		strncpy(buffer + strlen(cmd), mod, strlen(mod));
+	}
+	if(emod == LM048_ATM_SET){
+		if(packet->payload_length < 1){
+			*length = 0;
+			return LM048_ERROR;
+		}
+		strncpy(buffer + strlen(cmd) + strlen(mod),
+			packet->payload,
+			packet->payload_length);
+		strncpy(buffer + len, CR, 1);
+	}
+
+	*length = len;
 	return LM048_COMPLETED;
 }
 

@@ -55,19 +55,22 @@ enum LM048_AT{
 	//The AT+VER firmware version command
 	LM048_AT_VER = 3,
 	//The AT+VER firmware version response
-	LM048_AT_VER_RESPONSE = 4
+	LM048_AT_VER_RESPONSE = 4,
+	//The AT+PIN code command
+	LM048_AT_PIN
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
 enum LM048_ATM{
+	LM048_ATM_NONE,
 	//AT+COMMAND+
 	LM048_ATM_ENABLE,
 	//AT+COMMAND-
 	LM048_ATM_DISABLE,
 	//AT+COMMAND?
-	LM048_ATM_QUERY,
+	LM048_ATM_GET,
 	//AT+COMMAND=<value>
-	LM048_ATM_EQUALS
+	LM048_ATM_SET
 };
 
 //Encapsulates a discrete AT command or response
