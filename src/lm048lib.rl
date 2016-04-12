@@ -87,6 +87,10 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 		pkt->type = LM048_AT_VER_RESPONSE;
 	}
 
+	action on_pin {
+		pkt->type = LM048_AT_PIN;
+	}
+
 	action add_to_payload {
 		payload_add(pkt, *p);
 	}
@@ -138,7 +142,7 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 	pin = [pP][iI][nN] .
 		(on | off | get | 
 		 set @clear_payload .
-		 (alnum | punct | [\t\v\f ])+ @add_to_payload);
+		 (alnum | punct | [\t\v\f ])+ @add_to_payload) @on_pin;
 
 	commands = at (cr @on_at_at | ('+' (ver | pin) cr));
 

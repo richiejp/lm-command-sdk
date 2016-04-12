@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 26
+#define TESTCOUNT 29
 
 static void print_error(int cs, char c);
 static void setup();
@@ -145,6 +145,39 @@ TEST(parse_ver_response_payload)
 	       buf);
 
 	return strcmp("6.61", buf) == 0;
+}
+
+TEST(parse_pin_get)
+{
+	char *pin = "AT+PIN?\x0d";
+	size_t l = strlen(pin);
+
+	if(lm048_input(pin, &l) != LM048_COMPLETED){
+		return false;
+	}
+
+	return lm048_default_state.current.type == LM048_AT_PIN;
+}
+
+TEST(parse_pin_enable)
+{
+	char *pin = "AT+PIN+\x0d";
+	size_t l = strlen(pin);
+
+	lm048_input(pin, &l);
+
+	return lm048_default_state.current.modifier == LM048_ATM_ENABLE;
+}
+
+TEST(parse_pin_set)
+{
+	char *pin = "AT+Pin==% 1ff\x0d";
+	size_t l = strlen(pin);
+	lm048_input(pin, &l);
+	char buf[LM048_DEFAULT_PAYLOAD_LENGTH + 1];
+	lm048_packet_payload(NULL, buf, LM048_DEFAULT_PAYLOAD_LENGTH + 1);
+
+	return strcmp("=% 1ff", buf) == 0;
 }
 
 TEST(init_state)
@@ -463,6 +496,9 @@ int main(){
 		parse_ver,
 		parse_ver_response,
 		parse_ver_response_payload,
+		parse_pin_enable,
+		parse_pin_get,
+		parse_pin_set,
 		skip_line,
 		enqueue_one,
 		enqueue_many,
