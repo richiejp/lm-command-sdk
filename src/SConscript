@@ -50,10 +50,15 @@ copydocs = env.Command(Dir('../docs/API'), Dir('docs'), [
 													 ,Copy(Dir('../docs/API'), Dir('docs'))])
 env.Depends(copydocs, docs)
 
-C_FILES = [
-	'lm048lib.c',
+LM048_C_FILES = [
+	'lm048lib.c'
+]
+
+LM951_C_FILES = [
 	'lm951lib.c'
 ]
+
+C_FILES = LM048_C_FILES + LM951_C_FILES
 
 LM048_TEST_FILES = [
 	'lm048lib.c',
@@ -74,7 +79,7 @@ RAGEL_FILES = [
 for rl in RAGEL_FILES:
 	env.Ragel(rl)
 lib = env.Library(C_FILES)
-lm048_slib = env.SharedLibrary(C_FILES, CPPDEFINES='LM048_DLL')
+lm048_slib = env.SharedLibrary(LM048_C_FILES, CPPDEFINES='LM048_DLL')
 lm048_dll = env.Alias('lm048-dll', lm048_slib)
 
 #Set only the library as the default build target

@@ -1,5 +1,6 @@
 build/*.rl
 build/*.o
+build/*.os
 build/*_tests*
 build/SConscript
 **/build-*
