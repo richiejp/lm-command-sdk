@@ -28,7 +28,8 @@ print CC
 
 env = Environment(CC = CC, 
 								  CCFLAGS = CCFLAGS,
-									BUILDERS = BUILDERS)
+									BUILDERS = BUILDERS,
+									SHLIBPREFIX = "")
 
 #Import the Clang analyzer variables from the external environment
 if GetOption('analyze'):
@@ -72,7 +73,9 @@ RAGEL_FILES = [
 #Build the library, note that Ragel only takes a single file as input
 for rl in RAGEL_FILES:
 	env.Ragel(rl)
-lib = env.Object(C_FILES)
+lib = env.Library(C_FILES)
+lm048_slib = env.SharedLibrary(C_FILES, CPPDEFINES='LM048_DLL')
+lm048_dll = env.Alias('lm048-dll', lm048_slib)
 
 #Set only the library as the default build target
 env.Default(lib)
