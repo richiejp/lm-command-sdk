@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 29
+#define TESTCOUNT 30
 
 static void print_error(int cs, char c);
 static void setup();
@@ -454,6 +454,25 @@ TEST(write_at_at)
 	return strncmp(buf, at, length) == 0;
 }
 
+TEST(write_pin_set)
+{
+	char const *const pin = "AT+PIN=^.^=";
+	struct lm048_packet cmd = {
+		.type = LM048_AT_PIN,
+		.modifier = LM048_ATM_SET,
+		.payload = "^.^=",
+		.payload_length = 4,
+		.payload_capacity = 5
+	};
+
+	char buf[LM048_MINIMUM_WRITE_BUFFER];
+	size_t l;
+
+	lm048_write_packet(&cmd, buf, &l);
+
+	return strncmp(buf, pin, l);
+}
+
 TEST(write_front_command)
 {
 	char const *const at = "AT\x0d";
@@ -510,6 +529,7 @@ int main(){
 		queue_front_empty,
 		queue_front,
 		write_at_at,
+		write_pin_set,
 		write_front_command
 	};
 
