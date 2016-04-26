@@ -1,5 +1,14 @@
 
 #line 1 "build/lm951lib.rl"
+/** Copyright LM Technologies 2016
+ *
+ * This file is licensed under the terms of the Adaptive Public License 
+ * set forth in licenses.txt in the root directory of the LM Command SDK 
+ * repository.
+ *
+ * Author(s): Richard Palethorpe <richard@lm-technologies.com>
+ */
+
 #include "lm951lib.h"
 
 #ifdef __clang__
@@ -9,7 +18,7 @@
 #endif
 
 
-#line 13 "build/lm951lib.c"
+#line 22 "build/lm951lib.c"
 static const int atcmd_start = 1;
 static const int atcmd_first_final = 19;
 static const int atcmd_error = 0;
@@ -17,7 +26,7 @@ static const int atcmd_error = 0;
 static const int atcmd_en_main = 1;
 
 
-#line 52 "build/lm951lib.rl"
+#line 61 "build/lm951lib.rl"
 
 
 void lm951_no_op(){}
@@ -45,13 +54,13 @@ enum LM951_ISTATUS lm951_inputs(struct lm951_parser *state,
 		char const *eof = NULL;
 
 		
-#line 49 "build/lm951lib.c"
+#line 58 "build/lm951lib.c"
 	{
 	}
 
-#line 79 "build/lm951lib.rl"
+#line 88 "build/lm951lib.rl"
 		
-#line 55 "build/lm951lib.c"
+#line 64 "build/lm951lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -67,12 +76,12 @@ case 1:
 	}
 	goto tr0;
 tr0:
-#line 22 "build/lm951lib.rl"
+#line 31 "build/lm951lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 76 "build/lm951lib.c"
+#line 85 "build/lm951lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -143,19 +152,19 @@ case 9:
 		goto tr11;
 	goto tr0;
 tr11:
-#line 18 "build/lm951lib.rl"
+#line 27 "build/lm951lib.rl"
 	{
 		state->on_error_response();
 	}
 	goto st19;
 tr14:
-#line 14 "build/lm951lib.rl"
+#line 23 "build/lm951lib.rl"
 	{
 		state->on_ok_response();
 	}
 	goto st19;
 st19:
-#line 26 "build/lm951lib.rl"
+#line 35 "build/lm951lib.rl"
 	{
 		if(state->on_completed != NULL){
 			state->on_completed();
@@ -166,7 +175,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 170 "build/lm951lib.c"
+#line 179 "build/lm951lib.c"
 	goto st0;
 st10:
 	if ( ++p == pe )
@@ -292,19 +301,19 @@ case 18:
 	case 16: 
 	case 17: 
 	case 18: 
-#line 22 "build/lm951lib.rl"
+#line 31 "build/lm951lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 301 "build/lm951lib.c"
+#line 310 "build/lm951lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 80 "build/lm951lib.rl"
+#line 89 "build/lm951lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}

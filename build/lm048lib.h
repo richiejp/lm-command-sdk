@@ -10,6 +10,35 @@
 #ifndef LM048LIB_H
 #define LM048LIB_H
 
+#if defined _WIN32 || defined __CYGWIN__
+  #define LM048_HELPER_DLL_IMPORT __declspec(dllimport)
+  #define LM048_HELPER_DLL_EXPORT __declspec(dllexport)
+  #define LM048_HELPER_DLL_LOCAL
+#else
+  #if __GNUC__ >= 4 || defined __CLANG__
+    #define LM048_HELPER_DLL_IMPORT __attribute__ ((visibility ("default")))
+    #define LM048_HELPER_DLL_EXPORT __attribute__ ((visibility ("default")))
+    #define LM048_HELPER_DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+  #else
+    #define LM048_HELPER_DLL_IMPORT
+    #define LM048_HELPER_DLL_EXPORT
+    #define LM048_HELPER_DLL_LOCAL
+  #endif
+#endif
+
+#ifdef LM048_DLL
+  //- defined if we are building the LM048 DLL (instead of using it)
+  #ifdef LM048_DLL_EXPORTS 
+    #define LM048_API LM048_HELPER_DLL_EXPORT
+  #else
+    #define LM048_API LM048_HELPER_DLL_IMPORT
+  #endif // LM048_DLL_EXPORTS
+  #define LM048_LOCAL LM048_HELPER_DLL_LOCAL
+#else
+  #define LM048_API
+  #define LM048_LOCAL
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,10 +82,13 @@ enum LM048_AT{
 	LM048_AT_ERROR = 1,
 	//The AT<cr> command
 	LM048_AT_AT = 2,
+	//A common form of response containing a value.
+	//Many query/get commands respond with <crlf><value><crlf>OK
+	LM048_AT_VALUE_RESPONSE = 3,
 	//The AT+VER firmware version command
-	LM048_AT_VER = 3,
+	LM048_AT_VER = 4,
 	//The AT+VER firmware version response
-	LM048_AT_VER_RESPONSE = 4,
+	LM048_AT_VER_RESPONSE = 5,
 	//The AT+PIN code command
 	LM048_AT_PIN
 };
@@ -177,10 +209,10 @@ struct lm048_parser {
 //The default parser state
 //
 //Used when NULL is passed to a <lm048_parser> function argument.
-extern struct lm048_parser lm048_default_state;
+extern LM048_API struct lm048_parser lm048_default_state;
 
-void lm048_no_op(void);
-void lm048_no_op_e(int cs, char c);
+LM048_LOCAL void lm048_no_op(void);
+LM048_LOCAL void lm048_no_op_e(int cs, char c);
 
 /* Parse the data 
  * @state The current state and callbacks or NULL
@@ -200,9 +232,9 @@ void lm048_no_op_e(int cs, char c);
  *         is fully processed. Also <LM048_DEQUEUED> and <LM048_UNEXPECTED>
  *         can occure when a queue is being used, see <lm048_queue>.
  */
-enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
-			       char const *const data,
-			       size_t *const length);
+LM048_API enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
+				         char const *const data,
+				         size_t *const length);
 
 /* Parse the data
  * @data The text/bytes to parse
@@ -213,7 +245,8 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
  *
  * @return see <lm048_parser::lm048_inputs>
  */
-enum LM048_STATUS lm048_input(char const *const data, size_t *const length);
+LM048_API enum LM048_STATUS lm048_input(char const *const data,
+					size_t *const length);
 
 /* Finds the next newline (carriage return) character
  * @data The text/bytes to parse
@@ -226,7 +259,8 @@ enum LM048_STATUS lm048_input(char const *const data, size_t *const length);
  *
  * @return <LM048_COMPLETED> if a newline was found otherwise <LM048_OK>.
  */
-enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length);
+LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
+					    size_t *const length);
 
 /* Set the parser to the begining state
  * @state A parser's state or NULL
@@ -234,14 +268,14 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length);
  * This sets the cs member of <state> to the start value. If <state>
  * is NULL then the default global state variable is used.
  */
-void lm048_restart(struct lm048_parser *const state);
+LM048_API void lm048_restart(struct lm048_parser *const state);
 
 /* Sets the members of <lm048_parser> to safe defaults 
  * @state An uninitialised state
  *
  * This will overwrite all the members of the structure.
  */
-void lm048_init(struct lm048_parser *const state);
+LM048_API void lm048_init(struct lm048_parser *const state);
 
 /* Add a command-response pair to the end of <queue>
  * @queue The queue
@@ -257,12 +291,13 @@ void lm048_init(struct lm048_parser *const state);
  * @return <LM048_COMPLETED> on success, or <LM048_FULL> if there is no space
  *	   left in the queue.
  */
-enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
-				struct lm048_packet const command,
-				struct lm048_packet const response);
+LM048_API enum LM048_STATUS
+lm048_enqueue(struct lm048_queue *const queue,
+	      struct lm048_packet const command,
+	      struct lm048_packet const response);
 
 /* Get the command-response pair at the front of the queue*/
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_queue_front(struct lm048_queue const *const queue,
 		  struct lm048_packet const **command,
 		  struct lm048_packet const **response);
@@ -273,7 +308,7 @@ lm048_queue_front(struct lm048_queue const *const queue,
  *
  * @return The new queue
  */
-struct lm048_queue
+LM048_API struct lm048_queue
 lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length);
 
@@ -289,12 +324,12 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
  * @return <LM048_COMPLETED> on success, <LM048_FULL> if there was not enough
  *	   space in <buffer> and <LM048_ERROR> if <packet> is invalid.
  */
-enum LM048_STATUS
-lm048_write_packet(struct lm048_packet const *const packet,
+LM048_API enum LM048_STATUS
+lm048_write_packet(struct lm048_packet const *const packet, 
 		   char *const buffer,
 		   size_t *const length);
 
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_packet_init(struct lm048_packet *const packet,
 		  char *const payload,
 		  size_t payload_capacity);
@@ -311,7 +346,7 @@ lm048_packet_init(struct lm048_packet *const packet,
  *
  * @return see <lm048_queue_front> and <lm048_write_packet>
  */
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_write_front_command(struct lm048_queue const *const queue,
 			 char *const buffer,
 			 size_t *const length);
@@ -332,7 +367,7 @@ lm048_write_front_command(struct lm048_queue const *const queue,
  *	   to do and <LM048_FULL> if there is not enough space in the
  *	   target buffer
  */
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_packet_payload(struct lm048_packet const *const packet,
 		     char *const buffer,
 		     size_t const length);

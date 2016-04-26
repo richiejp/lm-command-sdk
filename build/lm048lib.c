@@ -34,7 +34,8 @@ static const int skipline_en_main = 1;
 #line 29 "build/lm048lib.rl"
 
 
-enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
+LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
+					    size_t *const length)
 {
 	if(*length > 0){
 		int cs;
@@ -42,14 +43,14 @@ enum LM048_STATUS lm048_skip_line(char *const data, size_t *const length)
 		char *pe = p + *length;
 
 		
-#line 46 "build/lm048lib.c"
+#line 47 "build/lm048lib.c"
 	{
 	cs = skipline_start;
 	}
 
-#line 39 "build/lm048lib.rl"
+#line 40 "build/lm048lib.rl"
 		
-#line 53 "build/lm048lib.c"
+#line 54 "build/lm048lib.c"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -70,7 +71,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 74 "build/lm048lib.c"
+#line 75 "build/lm048lib.c"
 	goto st0;
 st0:
 cs = 0;
@@ -83,7 +84,7 @@ cs = 0;
 	_out: {}
 	}
 
-#line 40 "build/lm048lib.rl"
+#line 41 "build/lm048lib.rl"
 
 		*length -= (size_t)(p - data);
 
@@ -96,15 +97,16 @@ cs = 0;
 }
 
 
-#line 100 "build/lm048lib.c"
+#line 101 "build/lm048lib.c"
 static const int atcmd_start = 1;
-static const int atcmd_first_final = 57;
+static const int atcmd_first_final = 64;
 static const int atcmd_error = 0;
 
+static const int atcmd_en_value_resp = 57;
 static const int atcmd_en_main = 1;
 
 
-#line 152 "build/lm048lib.rl"
+#line 165 "build/lm048lib.rl"
 
 
 void lm048_no_op(){}
@@ -125,7 +127,7 @@ static struct lm048_queue default_queue = {
 };
 
 static char default_payload[LM048_DEFAULT_PAYLOAD_LENGTH];
-struct lm048_parser lm048_default_state = {
+LM048_API struct lm048_parser lm048_default_state = {
 	.cs = 1,
 	.on_ok_response = lm048_no_op,
 	.on_error_response = lm048_no_op,
@@ -148,7 +150,7 @@ static enum LM048_STATUS payload_add(struct lm048_packet *const pkt, char c)
 	return LM048_FULL;
 }
 
-enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
+LM048_API enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
 				char *const payload,
 				size_t payload_capacity)
 {
@@ -161,7 +163,7 @@ enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
 	return LM048_COMPLETED;
 }
 
-enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
+LM048_API enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
 				struct lm048_packet const command,
 				struct lm048_packet const response)
 {
@@ -217,9 +219,10 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 	return LM048_DEQUEUED;
 }
 
-enum LM048_STATUS lm048_queue_front(struct lm048_queue const *const queue,
-				    struct lm048_packet const **cmd,
-				    struct lm048_packet const **resp)
+LM048_API enum LM048_STATUS
+lm048_queue_front(struct lm048_queue const *const queue,
+		  struct lm048_packet const **cmd,
+		  struct lm048_packet const **resp)
 {
 	struct lm048_queue const *que = &default_queue;
 	if(queue != NULL){
@@ -229,19 +232,23 @@ enum LM048_STATUS lm048_queue_front(struct lm048_queue const *const queue,
 	enum LM048_STATUS ret;
 
 	if(que->front == que->back){
-		*cmd = NULL;
-		*resp = NULL;
+		if(cmd != NULL)
+			*cmd = NULL;
+		if(resp != NULL)
+			*resp = NULL;
 		ret = LM048_EMPTY;
 	}else{
-		*cmd = &(que->array[que->front][0]);
-		*resp = &(que->array[que->front][1]);
+		if(cmd != NULL)
+			*cmd = &(que->array[que->front][0]);
+		if(resp != NULL)
+			*resp = &(que->array[que->front][1]);
 		ret = LM048_COMPLETED;
 	}
 
 	return ret;
 }
 
-struct lm048_queue
+LM048_API struct lm048_queue
 lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length)
 {
@@ -254,7 +261,7 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
 	return q;
 }
 
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_write_packet(struct lm048_packet const *const packet,
 		   char *const buffer,
 		   size_t *const length)
@@ -337,7 +344,7 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	return LM048_COMPLETED;
 }
 
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_write_front_command(struct lm048_queue const *const queue,
 			 char *const buffer,
 			 size_t *const length)
@@ -353,11 +360,14 @@ lm048_write_front_command(struct lm048_queue const *const queue,
 }
 
 
-enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
-			       char const *const data,
-			       size_t *const length)
+LM048_API enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
+				         char const *const data,
+				         size_t *const length)
 {
+	struct lm048_packet const *resp;
 	struct lm048_packet *const pkt = &state->current;
+
+	lm048_queue_front(state->queue, NULL, &resp);
 
 	if(*length > 0 && data != NULL){
 		char const *p = data;
@@ -365,13 +375,13 @@ enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 369 "build/lm048lib.c"
+#line 379 "build/lm048lib.c"
 	{
 	}
 
-#line 412 "build/lm048lib.rl"
+#line 433 "build/lm048lib.rl"
 		
-#line 375 "build/lm048lib.c"
+#line 385 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -384,26 +394,36 @@ st1:
 case 1:
 	_ps = 1;
 	switch( (*p) ) {
-		case 10: goto st2;
+		case 10: goto tr1;
 		case 13: goto st1;
 		case 65: goto st46;
 		case 97: goto st46;
 	}
 	goto tr0;
 tr0:
-#line 66 "build/lm048lib.rl"
+#line 67 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 400 "build/lm048lib.c"
+#line 410 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
+tr1:
+#line 123 "build/lm048lib.rl"
+	{
+		if(resp != NULL && resp->type == LM048_AT_VALUE_RESPONSE){
+			pkt->payload_length = 0;
+			{goto st57;}
+		}
+	}
+	goto st2;
 st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
+#line 427 "build/lm048lib.c"
 	_ps = 2;
 	switch( (*p) ) {
 		case 69: goto st3;
@@ -460,44 +480,44 @@ case 8:
 		goto tr12;
 	goto tr0;
 tr12:
-#line 61 "build/lm048lib.rl"
+#line 62 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_ERROR;
 		state->on_error_response();
 	}
-	goto st57;
+	goto st64;
 tr42:
-#line 86 "build/lm048lib.rl"
+#line 87 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_VER_RESPONSE;
 	}
-	goto st57;
+	goto st64;
 tr49:
-#line 56 "build/lm048lib.rl"
+#line 57 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_OK;
 		state->on_ok_response();
 	}
-	goto st57;
+	goto st64;
 tr51:
-#line 78 "build/lm048lib.rl"
+#line 79 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_AT;
 	}
-	goto st57;
-st57:
-#line 70 "build/lm048lib.rl"
+	goto st64;
+st64:
+#line 71 "build/lm048lib.rl"
 	{
 		if(state->on_completed != NULL){
 			state->on_completed();
 		}else{
-			{p++;  state->cs = 57; goto _out;}
+			{p++;  state->cs = 64; goto _out;}
 		}
 	}
 	if ( ++p == pe )
-		goto _test_eof57;
-case 57:
-#line 501 "build/lm048lib.c"
+		goto _test_eof64;
+case 64:
+#line 521 "build/lm048lib.c"
 	goto st0;
 st9:
 	if ( ++p == pe )
@@ -644,7 +664,7 @@ case 25:
 		goto tr26;
 	goto tr0;
 tr26:
-#line 98 "build/lm048lib.rl"
+#line 119 "build/lm048lib.rl"
 	{
 		pkt->payload_length = 0;
 	}
@@ -653,13 +673,13 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 657 "build/lm048lib.c"
+#line 677 "build/lm048lib.c"
 	_ps = 26;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr30;
 	goto tr0;
 tr30:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -668,7 +688,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 672 "build/lm048lib.c"
+#line 692 "build/lm048lib.c"
 	_ps = 27;
 	if ( (*p) == 46 )
 		goto tr31;
@@ -676,7 +696,7 @@ case 27:
 		goto tr32;
 	goto tr0;
 tr31:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -685,13 +705,13 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 689 "build/lm048lib.c"
+#line 709 "build/lm048lib.c"
 	_ps = 28;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr33;
 	goto tr0;
 tr33:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -700,13 +720,13 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 704 "build/lm048lib.c"
+#line 724 "build/lm048lib.c"
 	_ps = 29;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr34;
 	goto tr0;
 tr34:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -715,7 +735,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 719 "build/lm048lib.c"
+#line 739 "build/lm048lib.c"
 	_ps = 30;
 	switch( (*p) ) {
 		case 13: goto st31;
@@ -813,7 +833,7 @@ case 40:
 		goto st31;
 	goto tr0;
 tr37:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -822,7 +842,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 826 "build/lm048lib.c"
+#line 846 "build/lm048lib.c"
 	_ps = 41;
 	switch( (*p) ) {
 		case 13: goto st31;
@@ -830,7 +850,7 @@ case 41:
 	}
 	goto tr0;
 tr32:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
@@ -839,7 +859,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 843 "build/lm048lib.c"
+#line 863 "build/lm048lib.c"
 	_ps = 42;
 	if ( (*p) == 46 )
 		goto tr31;
@@ -933,37 +953,37 @@ case 51:
 	}
 	goto tr0;
 tr57:
-#line 102 "build/lm048lib.rl"
+#line 99 "build/lm048lib.rl"
 	{
 		pkt->modifier = LM048_ATM_ENABLE;
 	}
-#line 90 "build/lm048lib.rl"
+#line 95 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_PIN;
 	}
 	goto st52;
 tr58:
-#line 106 "build/lm048lib.rl"
+#line 103 "build/lm048lib.rl"
 	{
 		pkt->modifier = LM048_ATM_DISABLE;
 	}
-#line 90 "build/lm048lib.rl"
+#line 95 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_PIN;
 	}
 	goto st52;
 tr60:
-#line 110 "build/lm048lib.rl"
+#line 107 "build/lm048lib.rl"
 	{
 		pkt->modifier = LM048_ATM_GET;
 	}
-#line 90 "build/lm048lib.rl"
+#line 95 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_PIN;
 	}
 	goto st52;
 tr64:
-#line 82 "build/lm048lib.rl"
+#line 83 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_VER;
 	}
@@ -972,17 +992,17 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 976 "build/lm048lib.c"
+#line 996 "build/lm048lib.c"
 	_ps = 52;
 	if ( (*p) == 13 )
-		goto st57;
+		goto st64;
 	goto tr0;
 tr59:
-#line 114 "build/lm048lib.rl"
+#line 111 "build/lm048lib.rl"
 	{
 		pkt->modifier = LM048_ATM_SET;
 	}
-#line 98 "build/lm048lib.rl"
+#line 119 "build/lm048lib.rl"
 	{
 		pkt->payload_length = 0;
 	}
@@ -991,7 +1011,7 @@ st53:
 	if ( ++p == pe )
 		goto _test_eof53;
 case 53:
-#line 995 "build/lm048lib.c"
+#line 1015 "build/lm048lib.c"
 	_ps = 53;
 	if ( (*p) == 9 )
 		goto tr62;
@@ -1002,11 +1022,11 @@ case 53:
 		goto tr62;
 	goto tr0;
 tr62:
-#line 94 "build/lm048lib.rl"
+#line 115 "build/lm048lib.rl"
 	{
 		payload_add(pkt, *p);
 	}
-#line 90 "build/lm048lib.rl"
+#line 95 "build/lm048lib.rl"
 	{
 		pkt->type = LM048_AT_PIN;
 	}
@@ -1015,11 +1035,11 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 1019 "build/lm048lib.c"
+#line 1039 "build/lm048lib.c"
 	_ps = 54;
 	switch( (*p) ) {
 		case 9: goto tr62;
-		case 13: goto st57;
+		case 13: goto st64;
 	}
 	if ( (*p) > 12 ) {
 		if ( 32 <= (*p) && (*p) <= 126 )
@@ -1047,6 +1067,88 @@ case 56:
 		case 114: goto tr64;
 	}
 	goto tr0;
+st57:
+	if ( ++p == pe )
+		goto _test_eof57;
+case 57:
+	_ps = 57;
+	if ( (*p) == 13 )
+		goto tr0;
+	goto tr65;
+tr65:
+#line 115 "build/lm048lib.rl"
+	{
+		payload_add(pkt, *p);
+	}
+	goto st58;
+st58:
+	if ( ++p == pe )
+		goto _test_eof58;
+case 58:
+#line 1089 "build/lm048lib.c"
+	if ( (*p) == 13 )
+		goto st59;
+	goto tr65;
+st59:
+	if ( ++p == pe )
+		goto _test_eof59;
+case 59:
+	_ps = 59;
+	if ( (*p) == 10 )
+		goto st60;
+	goto tr0;
+st60:
+	if ( ++p == pe )
+		goto _test_eof60;
+case 60:
+	_ps = 60;
+	if ( (*p) == 79 )
+		goto st61;
+	goto tr0;
+st61:
+	if ( ++p == pe )
+		goto _test_eof61;
+case 61:
+	_ps = 61;
+	if ( (*p) == 75 )
+		goto st62;
+	goto tr0;
+st62:
+	if ( ++p == pe )
+		goto _test_eof62;
+case 62:
+	_ps = 62;
+	if ( (*p) == 13 )
+		goto st63;
+	goto tr0;
+st63:
+	if ( ++p == pe )
+		goto _test_eof63;
+case 63:
+	_ps = 63;
+	if ( (*p) == 10 )
+		goto tr71;
+	goto tr0;
+tr71:
+#line 91 "build/lm048lib.rl"
+	{
+		pkt->type = LM048_AT_VALUE_RESPONSE;
+	}
+	goto st65;
+st65:
+#line 71 "build/lm048lib.rl"
+	{
+		if(state->on_completed != NULL){
+			state->on_completed();
+		}else{
+			{p++;  state->cs = 65; goto _out;}
+		}
+	}
+	if ( ++p == pe )
+		goto _test_eof65;
+case 65:
+#line 1151 "build/lm048lib.c"
+	goto st0;
 	}
 	_test_eof1:  state->cs = 1; goto _test_eof; 
 	_test_eof2:  state->cs = 2; goto _test_eof; 
@@ -1056,7 +1158,7 @@ case 56:
 	_test_eof6:  state->cs = 6; goto _test_eof; 
 	_test_eof7:  state->cs = 7; goto _test_eof; 
 	_test_eof8:  state->cs = 8; goto _test_eof; 
-	_test_eof57:  state->cs = 57; goto _test_eof; 
+	_test_eof64:  state->cs = 64; goto _test_eof; 
 	_test_eof9:  state->cs = 9; goto _test_eof; 
 	_test_eof10:  state->cs = 10; goto _test_eof; 
 	_test_eof11:  state->cs = 11; goto _test_eof; 
@@ -1105,6 +1207,14 @@ case 56:
 	_test_eof54:  state->cs = 54; goto _test_eof; 
 	_test_eof55:  state->cs = 55; goto _test_eof; 
 	_test_eof56:  state->cs = 56; goto _test_eof; 
+	_test_eof57:  state->cs = 57; goto _test_eof; 
+	_test_eof58:  state->cs = 58; goto _test_eof; 
+	_test_eof59:  state->cs = 59; goto _test_eof; 
+	_test_eof60:  state->cs = 60; goto _test_eof; 
+	_test_eof61:  state->cs = 61; goto _test_eof; 
+	_test_eof62:  state->cs = 62; goto _test_eof; 
+	_test_eof63:  state->cs = 63; goto _test_eof; 
+	_test_eof65:  state->cs = 65; goto _test_eof; 
 
 	_test_eof: {}
 	if ( p == eof )
@@ -1166,24 +1276,31 @@ case 56:
 	case 54: 
 	case 55: 
 	case 56: 
-#line 66 "build/lm048lib.rl"
+	case 57: 
+	case 58: 
+	case 59: 
+	case 60: 
+	case 61: 
+	case 62: 
+	case 63: 
+#line 67 "build/lm048lib.rl"
 	{
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 1175 "build/lm048lib.c"
+#line 1292 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 413 "build/lm048lib.rl"
+#line 434 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}
 
-	if(state->cs >= 57){
+	if(state->cs >= 64){
 		state->cs = 1;
 		return dequeue(state->queue, pkt);
 	}else if(state->cs == 0){
@@ -1194,14 +1311,15 @@ case 56:
 	}
 }
 
-enum LM048_STATUS lm048_input(char const *const data, size_t *const length)
+LM048_API enum LM048_STATUS
+lm048_input(char const *const data, size_t *const length)
 {
 	enum LM048_STATUS s =
 		lm048_inputs(&lm048_default_state, data, length);
 	return s;
 }
 
-void lm048_restart(struct lm048_parser *state)
+LM048_API void lm048_restart(struct lm048_parser *state)
 {
 	if(state == NULL){
 		state = &lm048_default_state;
@@ -1210,7 +1328,7 @@ void lm048_restart(struct lm048_parser *state)
 	state->cs = 1;
 }
 
-void lm048_init(struct lm048_parser *state)
+LM048_API void lm048_init(struct lm048_parser *state)
 {
 	state->cs = 1;
 	state->on_ok_response = lm048_no_op;
@@ -1224,7 +1342,7 @@ void lm048_init(struct lm048_parser *state)
 			  LM048_DEFAULT_PAYLOAD_LENGTH);
 }
 
-enum LM048_STATUS
+LM048_API enum LM048_STATUS
 lm048_packet_payload(struct lm048_packet const *const packet,
 		     char *const buffer,
 		     size_t const length)
