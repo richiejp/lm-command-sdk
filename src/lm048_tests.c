@@ -485,7 +485,7 @@ TEST(write_at_at)
 
 	lm048_write_packet(&cmd, buf, &length);
 
-	return strncmp(buf, at, length) == 0;
+	return memcmp(buf, at, length) == 0;
 }
 
 TEST(write_pin_set)
@@ -509,7 +509,7 @@ TEST(write_pin_set)
 		return false;
 	}
 
-	if(strncmp(buf, pin, strlen(pin)) == 0){
+	if(memcmp(buf, pin, strlen(pin)) == 0){
 		buf[l] = '\0';
 		printf("%s != %s", buf, pin);
 		return false;
@@ -538,7 +538,7 @@ TEST(write_front_command)
 
 	enum LM048_STATUS s = lm048_write_front_command(&que, buf, &length);
 
-	return s == LM048_COMPLETED && strncmp(at, buf, length) == 0;
+	return s == LM048_COMPLETED && memcmp(at, buf, length) == 0;
 }
 
 int main(){
