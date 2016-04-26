@@ -490,11 +490,11 @@ TEST(write_at_at)
 
 TEST(write_pin_set)
 {
-	char const *const pin = "AT+PIN=^.^=";
+	char const *const pin = "AT+PIN=abcd\r";
 	struct lm048_packet cmd = {
 		.type = LM048_AT_PIN,
 		.modifier = LM048_ATM_SET,
-		.payload = "^.^=",
+		.payload = "abcd",
 		.payload_length = 4,
 		.payload_capacity = 5
 	};
@@ -504,7 +504,18 @@ TEST(write_pin_set)
 
 	lm048_write_packet(&cmd, buf, &l);
 
-	return strncmp(buf, pin, l);
+	if(strlen(pin) != l){
+		printf("Packet length %lu", l);
+		return false;
+	}
+
+	if(strncmp(buf, pin, strlen(pin)) == 0){
+		buf[l] = '\0';
+		printf("%s != %s", buf, pin);
+		return false;
+	}
+
+	return true;
 }
 
 TEST(write_front_command)

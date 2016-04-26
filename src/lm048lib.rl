@@ -371,7 +371,6 @@ lm048_write_packet(struct lm048_packet const *const packet,
 
 	len = strlen(cmd) + strlen(mod);
 	if(emod == LM048_ATM_SET){
-		// +1 for CR
 		len += packet->payload_length + 1;
 	}
 	if(len > *length){
