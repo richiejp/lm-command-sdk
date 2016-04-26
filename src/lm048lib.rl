@@ -54,12 +54,12 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 
 	access state->;
 
-	action on_ok_response {
+	action on_ok_resp {
 		pkt->type = LM048_AT_OK;
 		state->on_ok_response();
 	}
 
-	action on_error_response {
+	action on_error_resp {
 		pkt->type = LM048_AT_ERROR;
 		state->on_error_response();
 	}
@@ -84,20 +84,16 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		pkt->type = LM048_AT_VER;
 	}
 
-	action on_ver_response {
+	action on_ver_resp {
 		pkt->type = LM048_AT_VER_RESPONSE;
+	}
+
+	action on_value_resp {
+		pkt->type = LM048_AT_VALUE_RESPONSE;
 	}
 
 	action on_pin {
 		pkt->type = LM048_AT_PIN;
-	}
-
-	action add_to_payload {
-		payload_add(pkt, *p);
-	}
-
-	action clear_payload {
-		pkt->payload_length = 0;
 	}
 
 	action on_enable_mod {
@@ -116,22 +112,37 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		pkt->modifier = LM048_ATM_SET;
 	}
 
+	action add_to_payload {
+		payload_add(pkt, *p);
+	}
+
+	action clear_payload {
+		pkt->payload_length = 0;
+	}
+
+	action resp_context {
+		if(resp != NULL && resp->type == LM048_AT_VALUE_RESPONSE){
+			pkt->payload_length = 0;
+			fgoto value_resp;
+		}
+	}
+
 	cr = '\r';
 	lf = '\n';
 	crlf = cr lf;
 
 	ok = 'OK' crlf; 
 	error = 'ERROR' crlf;
-	command_response = lf .
-			   (ok @on_ok_response | 
-			    error @on_error_response);
-
-	ver_resp = lf 'F/W VERSION:' ' '{1,5} .
-		   'v' @clear_payload .
+	command_resp = (ok @on_ok_resp | error @on_error_resp);
+	
+	ver_resp = 'F/W VERSION:' ' '{1,5} 'v' @clear_payload .
 		   (digit{1,2} '.' digit{2,3}) $add_to_payload .
-		   ' '{,5} crlf ok @on_ver_response;
+		   ' '{,5} crlf ok @on_ver_resp;
 
-	responses = command_response | ver_resp; 
+	value_resp := ((any - cr)+ $add_to_payload crlf ok @on_value_resp) 
+			     @!on_error %~on_completed;
+
+	responses = lf @resp_context (command_resp | ver_resp);
 
 	on = '+' @on_enable_mod;
 	off = '-' @on_disable_mod;
@@ -147,7 +158,8 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 
 	commands = at (cr @on_at_at | ('+' (ver | pin) cr));
 
-	main := cr* (commands | responses) %~on_completed @!on_error;
+	main := (cr* (commands | responses)) %~on_completed
+		      @!on_error;
 	
 	write data;
 }%%
@@ -275,12 +287,16 @@ lm048_queue_front(struct lm048_queue const *const queue,
 	enum LM048_STATUS ret;
 
 	if(que->front == que->back){
-		*cmd = NULL;
-		*resp = NULL;
+		if(cmd != NULL)
+			*cmd = NULL;
+		if(resp != NULL)
+			*resp = NULL;
 		ret = LM048_EMPTY;
 	}else{
-		*cmd = &(que->array[que->front][0]);
-		*resp = &(que->array[que->front][1]);
+		if(cmd != NULL)
+			*cmd = &(que->array[que->front][0]);
+		if(resp != NULL)
+			*resp = &(que->array[que->front][1]);
 		ret = LM048_COMPLETED;
 	}
 
@@ -403,7 +419,10 @@ LM048_API enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 				         char const *const data,
 				         size_t *const length)
 {
+	struct lm048_packet const *resp;
 	struct lm048_packet *const pkt = &state->current;
+
+	lm048_queue_front(state->queue, NULL, &resp);
 
 	if(*length > 0 && data != NULL){
 		char const *p = data;

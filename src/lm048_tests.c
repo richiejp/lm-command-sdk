@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 30
+#define TESTCOUNT 31
 
 static void print_error(int cs, char c);
 static void setup();
@@ -322,7 +322,7 @@ TEST(expected_one_ver)
 		.type = LM048_AT_VER_RESPONSE,
 		.payload = "6.61",
 		.payload_length = 4,
-		.payload_capacity = 4
+		.payload_capacity = 5
 	};
 
 	struct lm048_packet a[100][2];
@@ -338,6 +338,40 @@ TEST(expected_one_ver)
 		return false;
 	}
 	return lm048_inputs(&state, version, &l) == LM048_DEQUEUED;
+}
+
+TEST(expected_one_pin_get)
+{
+	char const *const pin = "AT+PIN?\x0D";
+	size_t la = strlen(pin);
+	char const *const pin_value = "\x0d\x0a""1234\x0d\x0a""OK\x0d\x0a";
+	size_t l = strlen(pin_value);
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_PIN,
+		.modifier = LM048_ATM_GET
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_VALUE_RESPONSE,
+		.payload = "1234",
+		.payload_length = 4,
+		.payload_capacity = 5
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_queue_init(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	if(lm048_inputs(&state, pin, &la) != LM048_OK){
+		return false;
+	}
+	return lm048_inputs(&state, pin_value, &l) == LM048_DEQUEUED;
 }
 
 TEST(expected_many_echo)
@@ -524,6 +558,7 @@ int main(){
 		expected_one,
 		expected_one_echo,
 		expected_one_ver,
+		expected_one_pin_get,
 		expected_many_echo,
 		unexpected_one,
 		queue_front_empty,

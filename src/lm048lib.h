@@ -82,10 +82,13 @@ enum LM048_AT{
 	LM048_AT_ERROR = 1,
 	//The AT<cr> command
 	LM048_AT_AT = 2,
+	//A common form of response containing a value.
+	//Many query/get commands respond with <crlf><value><crlf>OK
+	LM048_AT_VALUE_RESPONSE = 3,
 	//The AT+VER firmware version command
-	LM048_AT_VER = 3,
+	LM048_AT_VER = 4,
 	//The AT+VER firmware version response
-	LM048_AT_VER_RESPONSE = 4,
+	LM048_AT_VER_RESPONSE = 5,
 	//The AT+PIN code command
 	LM048_AT_PIN
 };
