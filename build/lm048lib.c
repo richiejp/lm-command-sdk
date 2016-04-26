@@ -333,10 +333,10 @@ lm048_write_packet(struct lm048_packet const *const packet,
 			*length = 0;
 			return LM048_ERROR;
 		}
-		strncpy(buffer + strlen(cmd) + strlen(mod),
-			packet->payload,
-			packet->payload_length);
-		strncpy(buffer + len, CR, 1);
+		memcpy(buffer + strlen(cmd) + strlen(mod),
+		       packet->payload,
+		       packet->payload_length);
+		memcpy(buffer + len, CR, strlen(CR));
 	}
 
 	*length = len;
