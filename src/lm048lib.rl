@@ -9,10 +9,11 @@
 
 #include "lm048lib.h"
 #include <string.h>
+#include <stdio.h>
 
 #define CR LM048_COMMAND_DELIMETER
 #define CRLF LM048_RESPONSE_DELIMETER
-#define ATP "at+"
+#define ATP "AT+"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -318,30 +319,34 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
 
 LM048_API enum LM048_STATUS
 lm048_write_packet(struct lm048_packet const *const packet,
-		   char *const buffer,
+		   char *const buf,
 		   size_t *const length)
 {
 	size_t len = 0;
 	char const *cmd = "";
 	char const *mod = "";
+	char const *end = CR;
 	enum LM048_ATM emod = packet->modifier;
+
 	switch(packet->type){
 	case LM048_AT_NONE:
-		cmd = "";
-	case LM048_AT_OK:
-		cmd = CRLF "OK" CRLF;
 		emod = LM048_ATM_NONE;
+	case LM048_AT_OK:
+		cmd = CRLF "OK";
+		emod = LM048_ATM_NONE;
+		end = CRLF;
 		break;
 	case LM048_AT_ERROR:
-		cmd = CRLF "ERROR" CRLF;
+		cmd = CRLF "ERROR";
 		emod = LM048_ATM_NONE;
+		end = CRLF;
 		break;
 	case LM048_AT_AT:
-		cmd = "AT" CR;
+		cmd = "AT";
 		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_VER:
-		cmd = ATP "VER" CR;
+		cmd = ATP "VER";
 		emod = LM048_ATM_NONE;
 		break;
 	case LM048_AT_PIN:
@@ -354,13 +359,13 @@ lm048_write_packet(struct lm048_packet const *const packet,
 
 	switch(emod){
 	case LM048_ATM_ENABLE:
-		mod = "+" CR;
+		mod = "+";
 		break;
 	case LM048_ATM_DISABLE:
-		mod = "-" CR;
+		mod = "-";
 		break;
 	case LM048_ATM_GET:
-		mod = "?" CR;
+		mod = "?";
 		break;
 	case LM048_ATM_SET:
 		mod = "=";
@@ -369,30 +374,20 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		break;
 	}
 
-	len = strlen(cmd) + strlen(mod);
-	if(emod == LM048_ATM_SET){
-		len += packet->payload_length + 1;
-	}
-	if(len > *length){
+	len = strlen(cmd) + strlen(mod) + strlen(end)
+		+ packet->payload_length;
+	if(len >= *length){
 		*length = len;
 		return LM048_FULL;
 	}
 
-	strcpy(buffer, cmd);
-
-	if(emod != LM048_ATM_NONE){
-		strncpy(buffer + strlen(cmd), mod, strlen(mod));
-	}
-	if(emod == LM048_ATM_SET){
-		if(packet->payload_length < 1){
-			*length = 0;
-			return LM048_ERROR;
-		}
-		memcpy(buffer + strlen(cmd) + strlen(mod),
-		       packet->payload,
-		       packet->payload_length);
-		memcpy(buffer + len, CR, strlen(CR));
-	}
+	*buf = '\0';
+	strcat(buf, cmd);
+	if(!LM048_ATM_NONE)
+		strcat(buf, mod);
+	if(LM048_ATM_SET)
+		strncat(buf, packet->payload, packet->payload_length);
+	strcat(buf, end);
 
 	*length = len;
 	return LM048_COMPLETED;

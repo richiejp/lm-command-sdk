@@ -505,13 +505,13 @@ TEST(write_pin_set)
 	lm048_write_packet(&cmd, buf, &l);
 
 	if(strlen(pin) != l){
-		printf("Packet length %lu", l);
+		printf("Packet length %lu\n", l);
 		return false;
 	}
 
-	if(memcmp(buf, pin, strlen(pin)) == 0){
+	if(memcmp(buf, pin, strlen(pin)) != 0){
 		buf[l] = '\0';
-		printf("%s != %s", buf, pin);
+		printf("%s != %s\n", buf, pin);
 		return false;
 	}
 
