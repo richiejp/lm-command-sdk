@@ -380,13 +380,13 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		   size_t *const length)
 {
 	size_t len = 0;
-	char const *cmd = "";
-	char const *mod = "";
+	char const *cmd;
+	char const *mod;
 	char const *end = CR;
 
 	switch(packet->type){
 	case LM048_AT_NONE:
-		break;
+		return LM048_OK;
 	case LM048_AT_OK:
 		cmd = CRLF "OK";
 		end = CRLF;
@@ -434,7 +434,9 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		break;
 	}
 
-	len = strlen(cmd) + strlen(mod) + strlen(end);
+	len = strlen(cmd) + strlen(end);
+	if(lm048_packet_has_modifier(packet))
+		len += strlen(mod);
 	if(lm048_packet_has_payload(packet))
 		len += packet->payload_length;
 

@@ -140,7 +140,7 @@ TEST(parse_ver_response_payload)
 	char buf[LM048_DEFAULT_PAYLOAD_LENGTH + 1];
 	lm048_packet_payload(NULL, buf, LM048_DEFAULT_PAYLOAD_LENGTH + 1);
 
-	printf("Payload(%d): %s\n",
+	printf("Payload(%lu): %s\n",
 	       lm048_default_state.current.payload_length,
 	       buf);
 
@@ -475,7 +475,7 @@ TEST(queue_front)
 
 TEST(write_at_at)
 {
-	char const *const at = "AT\x0d";
+	char const *const at = "AT\x0d\x0d";
 	struct lm048_packet cmd = {
 		.type = LM048_AT_AT,
 		//-AT_AT command has no mod or payload, but should ignore
@@ -488,6 +488,11 @@ TEST(write_at_at)
 	size_t length;
 
 	lm048_write_packet(&cmd, buf, &length);
+
+	if(length > 3){
+		printf("Generated string length is %lu\n", length);
+		return false;
+	}
 
 	return memcmp(buf, at, length) == 0;
 }
