@@ -325,13 +325,13 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		   size_t *const length)
 {
 	size_t len = 0;
-	char const *cmd = "";
-	char const *mod = "";
+	char const *cmd;
+	char const *mod;
 	char const *end = CR;
 
 	switch(packet->type){
 	case LM048_AT_NONE:
-		break;
+		return LM048_OK;
 	case LM048_AT_OK:
 		cmd = CRLF "OK";
 		end = CRLF;
@@ -379,7 +379,9 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		break;
 	}
 
-	len = strlen(cmd) + strlen(mod) + strlen(end);
+	len = strlen(cmd) + strlen(end);
+	if(lm048_packet_has_modifier(packet))
+		len += strlen(mod);
 	if(lm048_packet_has_payload(packet))
 		len += packet->payload_length;
 
@@ -431,13 +433,13 @@ LM048_API enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 		char const *eof = NULL;
 
 		
-#line 435 "build/lm048lib.c"
+#line 437 "build/lm048lib.c"
 	{
 	}
 
-#line 489 "build/lm048lib.rl"
+#line 491 "build/lm048lib.rl"
 		
-#line 441 "build/lm048lib.c"
+#line 443 "build/lm048lib.c"
 	{
 	int _ps = 0;
 	if ( p == pe )
@@ -462,7 +464,7 @@ tr0:
 		state->on_error((_ps), (*p));
 	}
 	goto st0;
-#line 466 "build/lm048lib.c"
+#line 468 "build/lm048lib.c"
 st0:
  state->cs = 0;
 	goto _out;
@@ -479,7 +481,7 @@ st2:
 	if ( ++p == pe )
 		goto _test_eof2;
 case 2:
-#line 483 "build/lm048lib.c"
+#line 485 "build/lm048lib.c"
 	_ps = 2;
 	switch( (*p) ) {
 		case 69: goto st3;
@@ -573,7 +575,7 @@ st64:
 	if ( ++p == pe )
 		goto _test_eof64;
 case 64:
-#line 577 "build/lm048lib.c"
+#line 579 "build/lm048lib.c"
 	goto st0;
 st9:
 	if ( ++p == pe )
@@ -729,7 +731,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 733 "build/lm048lib.c"
+#line 735 "build/lm048lib.c"
 	_ps = 26;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr30;
@@ -744,7 +746,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 748 "build/lm048lib.c"
+#line 750 "build/lm048lib.c"
 	_ps = 27;
 	if ( (*p) == 46 )
 		goto tr31;
@@ -761,7 +763,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 765 "build/lm048lib.c"
+#line 767 "build/lm048lib.c"
 	_ps = 28;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr33;
@@ -776,7 +778,7 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 780 "build/lm048lib.c"
+#line 782 "build/lm048lib.c"
 	_ps = 29;
 	if ( 48 <= (*p) && (*p) <= 57 )
 		goto tr34;
@@ -791,7 +793,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 795 "build/lm048lib.c"
+#line 797 "build/lm048lib.c"
 	_ps = 30;
 	switch( (*p) ) {
 		case 13: goto st31;
@@ -898,7 +900,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 902 "build/lm048lib.c"
+#line 904 "build/lm048lib.c"
 	_ps = 41;
 	switch( (*p) ) {
 		case 13: goto st31;
@@ -915,7 +917,7 @@ st42:
 	if ( ++p == pe )
 		goto _test_eof42;
 case 42:
-#line 919 "build/lm048lib.c"
+#line 921 "build/lm048lib.c"
 	_ps = 42;
 	if ( (*p) == 46 )
 		goto tr31;
@@ -1048,7 +1050,7 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 1052 "build/lm048lib.c"
+#line 1054 "build/lm048lib.c"
 	_ps = 52;
 	if ( (*p) == 13 )
 		goto st64;
@@ -1067,7 +1069,7 @@ st53:
 	if ( ++p == pe )
 		goto _test_eof53;
 case 53:
-#line 1071 "build/lm048lib.c"
+#line 1073 "build/lm048lib.c"
 	_ps = 53;
 	if ( (*p) == 9 )
 		goto tr62;
@@ -1091,7 +1093,7 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 1095 "build/lm048lib.c"
+#line 1097 "build/lm048lib.c"
 	_ps = 54;
 	switch( (*p) ) {
 		case 9: goto tr62;
@@ -1141,7 +1143,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 1145 "build/lm048lib.c"
+#line 1147 "build/lm048lib.c"
 	if ( (*p) == 13 )
 		goto st59;
 	goto tr65;
@@ -1203,7 +1205,7 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 1207 "build/lm048lib.c"
+#line 1209 "build/lm048lib.c"
 	goto st0;
 	}
 	_test_eof1:  state->cs = 1; goto _test_eof; 
@@ -1344,14 +1346,14 @@ case 65:
 		state->on_error((_ps), (*p));
 	}
 	break;
-#line 1348 "build/lm048lib.c"
+#line 1350 "build/lm048lib.c"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 490 "build/lm048lib.rl"
+#line 492 "build/lm048lib.rl"
 
 		*length = *length - (size_t)(p - data);
 	}
