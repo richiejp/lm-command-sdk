@@ -260,14 +260,16 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 		return LM048_UNEXPECTED;
 	}
 
-	if(expected->payload_length != received->payload_length){
+	if(lm048_packet_has_modifier(expected)
+	   && expected->modifier != received->modifier){
 		return LM048_UNEXPECTED;
 	}
 
-	if(expected->payload_length > 0 &&
-	   strncmp(expected->payload,
-		   received->payload,
-		   expected->payload_length) != 0)
+	if(lm048_packet_has_payload(expected)
+	   && (expected->payload_length != received->payload_length
+	       || strncmp(expected->payload,
+			  received->payload,
+			  expected->payload_length)))
 	{
 		return LM048_UNEXPECTED;
 	}
@@ -317,6 +319,61 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
 	return q;
 }
 
+LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
+{
+	switch(pkt->type){
+	case LM048_AT_NONE:
+	case LM048_AT_OK:
+	case LM048_AT_ERROR:
+	case LM048_AT_AT:
+	case LM048_AT_VALUE_RESPONSE:
+	case LM048_AT_VER:
+	case LM048_AT_VER_RESPONSE:
+		return 0;
+	case LM048_AT_PIN:
+		return 1;
+	default:
+		return -1;
+	}
+}
+
+LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
+{
+	switch(pkt->type){
+
+	//-Never has payload
+	case LM048_AT_NONE:
+	case LM048_AT_OK:
+	case LM048_AT_ERROR:
+	case LM048_AT_AT:
+	case LM048_AT_VER:
+		return 0;
+
+	//-Always has payload
+	case LM048_AT_VALUE_RESPONSE:
+	case LM048_AT_VER_RESPONSE:
+		return 1;
+
+	//-Depends on modifier
+	case LM048_AT_PIN:
+		break;
+	default:
+		return -1;
+	}
+
+	switch(pkt->modifier){
+	case LM048_ATM_ENABLE:
+	case LM048_ATM_DISABLE:
+	case LM048_ATM_GET:
+		return 0;
+	case LM048_ATM_SET:
+		return 1;
+	case LM048_ATM_NONE:
+		break;
+	}
+	return -1;
+}
+
 LM048_API enum LM048_STATUS
 lm048_write_packet(struct lm048_packet const *const packet,
 		   char *const buf,
@@ -326,29 +383,31 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	char const *cmd = "";
 	char const *mod = "";
 	char const *end = CR;
-	enum LM048_ATM emod = packet->modifier;
 
 	switch(packet->type){
 	case LM048_AT_NONE:
-		emod = LM048_ATM_NONE;
+		break;
 	case LM048_AT_OK:
 		cmd = CRLF "OK";
-		emod = LM048_ATM_NONE;
 		end = CRLF;
 		break;
 	case LM048_AT_ERROR:
 		cmd = CRLF "ERROR";
-		emod = LM048_ATM_NONE;
 		end = CRLF;
 		break;
 	case LM048_AT_AT:
 		cmd = "AT";
-		emod = LM048_ATM_NONE;
+		break;
+	case LM048_AT_VALUE_RESPONSE:
+		cmd = CRLF;
+		end = CRLF "OK" CRLF;
 		break;
 	case LM048_AT_VER:
 		cmd = ATP "VER";
-		emod = LM048_ATM_NONE;
 		break;
+	case LM048_AT_VER_RESPONSE:
+		cmd = CRLF "F/W VERSION:";
+		end = CRLF "OK" CRLF;
 	case LM048_AT_PIN:
 		cmd = ATP "PIN";
 		break;
@@ -357,7 +416,7 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		return LM048_ERROR;
 	}
 
-	switch(emod){
+	switch(packet->modifier){
 	case LM048_ATM_ENABLE:
 		mod = "+";
 		break;
@@ -383,9 +442,9 @@ lm048_write_packet(struct lm048_packet const *const packet,
 
 	*buf = '\0';
 	strcat(buf, cmd);
-	if(!LM048_ATM_NONE)
+	if(lm048_packet_has_modifier(packet))
 		strcat(buf, mod);
-	if(LM048_ATM_SET)
+	if(lm048_packet_has_payload(packet))
 		strncat(buf, packet->payload, packet->payload_length);
 	strcat(buf, end);
 

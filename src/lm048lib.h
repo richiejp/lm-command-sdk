@@ -45,6 +45,10 @@ extern "C" {
 
 #include <stddef.h>
 
+#ifndef BOOL
+#define BOOL int
+#endif
+
 #define LM048_COMMAND_DELIMETER "\x0D"
 #define LM048_RESPONSE_DELIMETER "\x0D\x0A"
 #define LM048_DEFAULT_QUEUE_LENGTH 100
@@ -53,8 +57,8 @@ extern "C" {
 
 #ifdef DEBUG
 #include <stdio.h>
-#define PRINTDBG printdbg
-static void printdbg(char const *const str)
+#define LM_PRINTDBG printdbg
+static void lm_printdbg(char const *const str)
 {
 	for(char const *c = str; *c != '\0'; c++){
 		if(*c > 0x1F && *c < 0x7F)
@@ -65,7 +69,7 @@ static void printdbg(char const *const str)
 	putchar('\n');
 }
 #else
-#define PRINTDBG
+#define LM_PRINTDBG
 #endif
 
 
@@ -330,6 +334,12 @@ LM048_API struct lm048_queue
 lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length);
 
+LM048_API BOOL
+lm048_packet_has_modifier(struct lm048_packet const *const pkt);
+
+LM048_API BOOL
+lm048_packet_has_payload(struct lm048_packet const *const pkt);
+
 /* Writes the bytes comprising an AT command or response to <buffer>
  * @buffer An array of at least <LM048_MINIMUM_WRITE_BUFFER> if possible
  * @length The length of the buffer on input and how many bytes were used/needed
@@ -343,7 +353,7 @@ lm048_queue_init(struct lm048_packet (*const array)[2],
  *	   space in <buffer> and <LM048_ERROR> if <packet> is invalid.
  */
 LM048_API enum LM048_STATUS
-lm048_write_packet(struct lm048_packet const *const packet, 
+lm048_write_packet(struct lm048_packet const *const packet,
 		   char *const buffer,
 		   size_t *const length);
 
