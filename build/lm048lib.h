@@ -51,6 +51,24 @@ extern "C" {
 #define LM048_DEFAULT_PAYLOAD_LENGTH 40
 #define LM048_MINIMUM_WRITE_BUFFER 125
 
+#ifdef DEBUG
+#include <stdio.h>
+#define PRINTDBG printdbg
+static void printdbg(char const *const str)
+{
+	for(char const *c = str; *c != '\0'; c++){
+		if(*c > 0x1F && *c < 0x7F)
+			putchar(*c);
+		else
+			printf("\\x%02X", (unsigned)*c);
+	}
+	putchar('\n');
+}
+#else
+#define PRINTDBG
+#endif
+
+
 /* Function return statuses */
 enum LM048_STATUS {
 	//A response, command or action was processed/completed
