@@ -1,4 +1,5 @@
 build/*.rl
+build/*.a
 build/*.o
 build/*.os
 build/*_tests*
