@@ -41,7 +41,7 @@ else:
 #Generate the API documentation using cldoc
 docs = env.Command( Dir('docs')
 									 ,['lm048lib.h', 'lm951lib.h']
-									 ,'cldoc generate -- $SOURCE --output $TARGET')
+									 ,'cldoc generate -- --report --language c $SOURCE --output $TARGET')
 env.Clean(docs, Glob('docs/*'))
 
 #Copy the documentation into the main docs folder
