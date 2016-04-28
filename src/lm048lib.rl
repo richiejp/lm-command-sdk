@@ -408,6 +408,7 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	case LM048_AT_VER_RESPONSE:
 		cmd = CRLF "F/W VERSION:";
 		end = CRLF "OK" CRLF;
+		break;
 	case LM048_AT_PIN:
 		cmd = ATP "PIN";
 		break;
@@ -433,8 +434,10 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		break;
 	}
 
-	len = strlen(cmd) + strlen(mod) + strlen(end)
-		+ packet->payload_length;
+	len = strlen(cmd) + strlen(mod) + strlen(end);
+	if(lm048_packet_has_payload(packet))
+		len += packet->payload_length;
+
 	if(len >= *length){
 		*length = len;
 		return LM048_FULL;

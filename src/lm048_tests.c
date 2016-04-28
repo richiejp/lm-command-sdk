@@ -477,7 +477,11 @@ TEST(write_at_at)
 {
 	char const *const at = "AT\x0d";
 	struct lm048_packet cmd = {
-		.type = LM048_AT_AT
+		.type = LM048_AT_AT,
+		//-AT_AT command has no mod or payload, but should ignore
+		//-these fields if they are set
+		.modifier = LM048_ATM_SET,
+		.payload_length = 8
 	};
 
 	char buf[LM048_MINIMUM_WRITE_BUFFER];
