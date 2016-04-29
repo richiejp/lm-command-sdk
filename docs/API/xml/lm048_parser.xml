@@ -17,21 +17,11 @@ state machine.</doc>
   </field>
   <field id="lm048_parser::on_ok_response" name="on_ok_response">
     <brief>Action to take when OK response is parsed</brief>
-    <type class="function" qualifier="*">
-      <result>
-        <type builtin="yes" name="void" />
-      </result>
-      <arguments />
-    </type>
+    <type name="void ()" qualifier="*" />
   </field>
   <field id="lm048_parser::on_error_response" name="on_error_response">
     <brief>Action to take when ERROR response is parsed</brief>
-    <type class="function" qualifier="*">
-      <result>
-        <type builtin="yes" name="void" />
-      </result>
-      <arguments />
-    </type>
+    <type name="void ()" qualifier="*" />
   </field>
   <field id="lm048_parser::on_error" name="on_error">
     <brief>Action to take when a lexing error occures</brief>
@@ -52,18 +42,17 @@ state machine.</doc>
 Assigning a callback will stop this behaviour, which may have
 unexpected effects e.g. it will sometimes stop items from being
 dequeued.</doc>
-    <type class="function" qualifier="*">
-      <result>
-        <type builtin="yes" name="void" />
-      </result>
-      <arguments />
-    </type>
+    <type name="void ()" qualifier="*" />
   </field>
   <field id="lm048_parser::queue" name="queue">
     <brief>A queue of expected commands and responses.</brief>
     <doc>When an item is processed by <ref ref="lm048_parser#lm048_inputs">lm048_inputs</ref> it is compared
 against the command-response at the front of this queue.</doc>
     <type name="lm048_queue" qualifier="*" ref="lm048_queue#lm048_queue" />
+  </field>
+  <field id="lm048_parser::current" name="current">
+    <brief>The packet being parsed or just finished parsing</brief>
+    <type name="lm048_packet" ref="lm048_packet#lm048_packet" />
   </field>
   <function id="lm048_init" name="lm048_init">
     <brief> Sets the members of <ref ref="lm048_parser#lm048_parser">lm048_parser</ref> to safe defaults</brief>

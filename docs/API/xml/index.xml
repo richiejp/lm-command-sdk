@@ -28,22 +28,39 @@
     <enumvalue id="LM048_AT_AT" name="LM048_AT_AT" value="2">
       <brief>The AT&amp;lt;cr&amp;gt; command</brief>
     </enumvalue>
-    <enumvalue id="LM048_AT_VER" name="LM048_AT_VER" value="3">
-      <brief>The AT+VER? firmware version command</brief>
+    <enumvalue id="LM048_AT_VALUE_RESPONSE" name="LM048_AT_VALUE_RESPONSE" value="3">
+      <brief>A common form of response containing a value.</brief>
+      <doc>Many query/get commands respond with &amp;lt;crlf&amp;gt;&amp;lt;value&amp;gt;&amp;lt;crlf&amp;gt;OK.
+Unfortunately there is ambiguity between this response and all
+other types of response, so this response will only be
+successfully parsed when the library is expecting it.
+<ref ref="lm048_queue#lm048_enqueue">lm048_enqueue</ref> sets the necessary context.</doc>
+    </enumvalue>
+    <enumvalue id="LM048_AT_VER" name="LM048_AT_VER" value="4">
+      <brief>The AT+VER firmware version command</brief>
+    </enumvalue>
+    <enumvalue id="LM048_AT_VER_RESPONSE" name="LM048_AT_VER_RESPONSE" value="5">
+      <brief>The AT+VER firmware version response</brief>
+    </enumvalue>
+    <enumvalue id="LM048_AT_PIN" name="LM048_AT_PIN" value="6">
+      <brief>The AT+PIN code command</brief>
     </enumvalue>
   </enum>
   <enum anonymous="yes" id="LM048_ATM" name="LM048_ATM">
     <brief>Enumeration of AT command modifiers i.e +, -, ? and =</brief>
-    <enumvalue id="LM048_ATM_ENABLE" name="LM048_ATM_ENABLE" value="0">
+    <enumvalue id="LM048_ATM_NONE" name="LM048_ATM_NONE" value="0">
+      <brief>AT command does not have modifiers</brief>
+    </enumvalue>
+    <enumvalue id="LM048_ATM_ENABLE" name="LM048_ATM_ENABLE" value="1">
       <brief>AT+COMMAND+</brief>
     </enumvalue>
-    <enumvalue id="LM048_ATM_DISABLE" name="LM048_ATM_DISABLE" value="1">
+    <enumvalue id="LM048_ATM_DISABLE" name="LM048_ATM_DISABLE" value="2">
       <brief>AT+COMMAND-</brief>
     </enumvalue>
-    <enumvalue id="LM048_ATM_QUERY" name="LM048_ATM_QUERY" value="2">
+    <enumvalue id="LM048_ATM_GET" name="LM048_ATM_GET" value="3">
       <brief>AT+COMMAND?</brief>
     </enumvalue>
-    <enumvalue id="LM048_ATM_EQUALS" name="LM048_ATM_EQUALS" value="3">
+    <enumvalue id="LM048_ATM_SET" name="LM048_ATM_SET" value="4">
       <brief>AT+COMMAND=&amp;lt;value&amp;gt;</brief>
     </enumvalue>
   </enum>
@@ -73,6 +90,21 @@ processed</doc>
     <enumvalue id="LM048_EMPTY" name="LM048_EMPTY" value="6">
       <brief>Storage of some type is empty</brief>
     </enumvalue>
+    <function id="lm048_packet_init" name="lm048_packet_init">
+      <brief>Initialize packet struct</brief>
+      <return>
+        <type name="LM048_STATUS" ref="index#LM048_STATUS" />
+      </return>
+      <argument id="lm048_packet_init::packet" name="packet">
+        <type name="lm048_packet" qualifier=" const *" ref="lm048_packet#lm048_packet" />
+      </argument>
+      <argument id="lm048_packet_init::payload" name="payload">
+        <type builtin="yes" name="char" qualifier=" const *" />
+      </argument>
+      <argument id="lm048_packet_init::payload_capacity" name="payload_capacity">
+        <type name="size_t" />
+      </argument>
+    </function>
   </enum>
   <function id="lm048_input" name="lm048_input">
     <brief> Parse the data</brief>
@@ -109,30 +141,26 @@ automatically managed state.
       <type builtin="yes" name="char" />
     </argument>
   </function>
-  <function id="lm048_write_packet" name="lm048_write_packet">
-    <brief> Writes the bytes comprising an AT command or response to <ref ref="#lm048_write_packet::buffer">buffer</ref>
-    </brief>
-    <doc>This generates the textual representation of an AT command or response
-from a <ref ref="lm048_packet#lm048_packet">lm048_packet</ref> ensuring the command is syntactically correct.
+  <function id="lm048_skip_line" name="lm048_skip_line">
+    <brief> Finds the next newline (carriage return) character</brief>
+    <doc>Sometimes you may want to ignore all the data leading up to the next
+carriage return or process it via a different method. Use <ref ref="#lm048_skip_line::length">length</ref> to
+determine where the newline occurred.
 
 </doc>
     <return>
-      <doc><ref ref="#LM048_COMPLETED">LM048_COMPLETED</ref> on success, <ref ref="#LM048_FULL">LM048_FULL</ref> if there was not enough
-           space in <ref ref="#lm048_write_packet::buffer">buffer</ref> and <ref ref="#LM048_ERROR">LM048_ERROR</ref> if <ref ref="#lm048_write_packet::packet">packet</ref> is invalid.</doc>
+      <doc><ref ref="#LM048_COMPLETED">LM048_COMPLETED</ref> if a newline was found otherwise <ref ref="#LM048_OK">LM048_OK</ref>.</doc>
       <type name="LM048_STATUS" ref="index#LM048_STATUS" />
     </return>
-    <argument id="lm048_write_packet::buffer" name="buffer">
-      <doc>An array of at least &amp;lt;LM048\_MINIMUM\_WRITE\_BUFFER&amp;gt; if possible</doc>
+    <argument id="lm048_skip_line::data" name="data">
+      <doc>The text/bytes to parse</doc>
       <type builtin="yes" name="char" qualifier=" const *" />
     </argument>
-    <argument id="lm048_write_packet::length" name="length">
-      <doc>The length of the buffer on input and how many bytes were used/needed
-           on output</doc>
+    <argument id="lm048_skip_line::length" name="length">
+      <doc>The length of the data on input and the amount left to process on
+           output</doc>
       <type name="size_t" qualifier=" const *" />
     </argument>
-    <argument id="lm048_write_packet::packet" name="packet">
-      <doc>The packet structure describing the AT command/response to be written</doc>
-      <type name="lm048_packet" qualifier=" const const *" ref="lm048_packet#lm048_packet" />
-    </argument>
   </function>
+  <report name="Documentation generator" ref="report" />
 </index>

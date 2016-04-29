@@ -10,7 +10,100 @@
     <type name="LM048_ATM" ref="index#LM048_ATM" />
   </field>
   <field id="lm048_packet::payload" name="payload">
-    <brief>Variable length data sent as part of some commands and responses</brief>
+    <brief>Variable length data sent as part of some commands and responses.</brief>
+    <doc>Always ensure that <ref ref="lm048_packet#lm048_packet::payload_capacity">lm048_packet::payload_capacity</ref> and <ref ref="lm048_packet#lm048_packet::payload_length">lm048_packet::payload_length</ref> are set
+correctly especially as payload may be populated from an
+untrustworthy source.</doc>
     <type builtin="yes" name="char" qualifier="*" />
   </field>
+  <field id="lm048_packet::payload_length" name="payload_length">
+    <brief>The number of meaningful bytes in <ref ref="lm048_packet#lm048_packet::payload">lm048_packet::payload</ref>
+    </brief>
+    <type name="size_t" />
+  </field>
+  <field id="lm048_packet::payload_capacity" name="payload_capacity">
+    <brief>The amount of memory, in bytes, allocated to the <ref ref="lm048_packet#lm048_packet::payload">lm048_packet::payload</ref> array</brief>
+    <type name="size_t" />
+  </field>
+  <function id="lm048_packet_has_modifier" name="lm048_packet_has_modifier">
+    <brief> Check's if packet type has modifiers</brief>
+    <return>
+      <doc>0 for no, 1 for yes and -1 for error</doc>
+      <type builtin="yes" name="int" />
+    </return>
+    <argument id="lm048_packet_has_modifier::pkt" name="pkt">
+      <doc>The packet to check</doc>
+      <type name="lm048_packet" qualifier=" const const *" ref="lm048_packet#lm048_packet" />
+    </argument>
+  </function>
+  <function id="lm048_packet_has_payload" name="lm048_packet_has_payload">
+    <brief> Check's if packet should have a payload</brief>
+    <doc>Inspects the packet's type and modifiers to determine if there should be
+a payload value. **Does not check if payload data is actually present**.
+
+</doc>
+    <return>
+      <doc>0 for no, 1 for yes and -1 for error</doc>
+      <type builtin="yes" name="int" />
+    </return>
+    <argument id="lm048_packet_has_payload::pkt" name="pkt">
+      <doc>The packet to check</doc>
+      <type name="lm048_packet" qualifier=" const const *" ref="lm048_packet#lm048_packet" />
+    </argument>
+  </function>
+  <function id="lm048_packet_payload" name="lm048_packet_payload">
+    <brief> Copies the <ref ref="lm048_packet#lm048_packet::payload">lm048_packet::payload</ref> to a null terminated string</brief>
+    <doc>The payload inside of the <ref ref="lm048_packet#lm048_packet">lm048_packet</ref> structure is not null
+terminated and often the same packet structure is overwritten on
+successive calls to <ref ref="lm048_parser#lm048_inputs">lm048_inputs</ref>. This function copies
+the payload to a place of your choosing and adds null termination.
+
+</doc>
+    <return>
+      <doc><ref ref="#LM048_COMPLETED">LM048_COMPLETED</ref> on success, <ref ref="#LM048_OK">LM048_OK</ref> if there is nothing
+           to do and <ref ref="#LM048_FULL">LM048_FULL</ref> if there is not enough space in the
+           target buffer</doc>
+      <type name="LM048_STATUS" ref="index#LM048_STATUS" />
+    </return>
+    <argument id="lm048_packet_payload::packet" name="packet">
+      <doc>The packet to get the payload from or NULL to use the
+           <ref ref="lm048_parser#lm048_parser::current">lm048_parser::current</ref> packet in the <ref ref="index#lm048_default_state">lm048_default_state</ref></doc>
+      <type name="lm048_packet" qualifier=" const const *" ref="lm048_packet#lm048_packet" />
+    </argument>
+    <argument id="lm048_packet_payload::buffer" name="buffer">
+      <doc>An array with a length which is one greater than the capacity
+           of the payload being copied</doc>
+      <type builtin="yes" name="char" qualifier=" const *" />
+    </argument>
+    <argument id="lm048_packet_payload::length" name="length">
+      <doc>The length of <ref ref="lm048_packet#lm048_packet_payload::buffer">buffer</ref></doc>
+      <type name="size_t" qualifier=" const" />
+    </argument>
+  </function>
+  <function id="lm048_write_packet" name="lm048_write_packet">
+    <brief> Writes the bytes comprising an AT command or response to <ref ref="lm048_packet#lm048_write_packet::buffer">buffer</ref>
+    </brief>
+    <doc>This generates the textual representation of an AT command or response
+from a <ref ref="lm048_packet#lm048_packet">lm048_packet</ref> ensuring the command is syntactically correct.
+
+</doc>
+    <return>
+      <doc><ref ref="#LM048_COMPLETED">LM048_COMPLETED</ref> on success, <ref ref="#LM048_FULL">LM048_FULL</ref> if there was not enough
+           space in <ref ref="lm048_packet#lm048_write_packet::buffer">buffer</ref> and <ref ref="#LM048_ERROR">LM048_ERROR</ref> if <ref ref="lm048_packet#lm048_write_packet::packet">packet</ref> is invalid.</doc>
+      <type name="LM048_STATUS" ref="index#LM048_STATUS" />
+    </return>
+    <argument id="lm048_write_packet::packet" name="packet">
+      <doc>The packet structure describing the AT command/response to be written</doc>
+      <type name="lm048_packet" qualifier=" const const *" ref="lm048_packet#lm048_packet" />
+    </argument>
+    <argument id="lm048_write_packet::buffer" name="buffer">
+      <doc>An array of at least &amp;lt;LM048\_MINIMUM\_WRITE\_BUFFER&amp;gt; if possible</doc>
+      <type builtin="yes" name="char" qualifier=" const *" />
+    </argument>
+    <argument id="lm048_write_packet::length" name="length">
+      <doc>The length of the buffer on input and how many bytes were used/needed
+           on output</doc>
+      <type name="size_t" qualifier=" const *" />
+    </argument>
+  </function>
 </struct>

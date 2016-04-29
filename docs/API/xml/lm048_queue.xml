@@ -87,7 +87,7 @@ TODO Commands expecting no response should probably be dequeued
 
 </doc>
     <return>
-      <doc>see <ref ref="lm048_queue#lm048_queue_front">lm048_queue_front</ref> and <ref ref="index#lm048_write_packet">lm048_write_packet</ref></doc>
+      <doc>see <ref ref="lm048_queue#lm048_queue_front">lm048_queue_front</ref> and &amp;lt;lm048\_write\_packet&amp;gt;</doc>
       <type name="LM048_STATUS" ref="index#LM048_STATUS" />
     </return>
     <argument id="lm048_write_front_command::queue" name="queue">
