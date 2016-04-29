@@ -3,6 +3,7 @@ build/*.a
 build/*.o
 build/*.os
 build/*_tests*
+build/docs/
 build/SConscript
 **/build-*
 .sconsign.dblite
