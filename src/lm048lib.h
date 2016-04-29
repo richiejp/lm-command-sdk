@@ -103,20 +103,28 @@ enum LM048_AT{
 	//The ERROR response
 	LM048_AT_ERROR = 1,
 	//The AT<cr> command
-	LM048_AT_AT = 2,
+	LM048_AT_AT,
 	//A common form of response containing a value.
 	//Many query/get commands respond with <crlf><value><crlf>OK.
 	//Unfortunately there is ambiguity between this response and all
 	//other types of response, so this response will only be 
 	//successfully parsed when the library is expecting it.
 	// <lm048_queue::lm048_enqueue> sets the necessary context.
-	LM048_AT_VALUE_RESPONSE = 3,
+	LM048_AT_VALUE_RESPONSE,
 	//The AT+VER firmware version command
-	LM048_AT_VER = 4,
+	LM048_AT_VER,
 	//The AT+VER firmware version response
-	LM048_AT_VER_RESPONSE = 5,
-	//The AT+PIN code command
-	LM048_AT_PIN
+	LM048_AT_VER_RESPONSE,
+	//The AT+PIN code command which handles the BT2.0 pin code
+	LM048_AT_PIN,
+	//The settings enquiry command, not supported.
+	LM048_AT_ENQ,
+	//AT+RESET, resets to factory defaults
+	LM048_AT_RESET,
+	//AT+BAUD, set the baud rate
+	LM048_AT_BAUD,
+	//Baud rate query response BAUDd
+	LM048_AT_BAUD_RESPONSE
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
@@ -129,7 +137,8 @@ enum LM048_ATM{
 	LM048_ATM_DISABLE,
 	//AT+COMMAND?
 	LM048_ATM_GET,
-	//AT+COMMAND=<value>
+	//AT+COMMAND=<value> or AT+COMMAND<value> depending on the command
+	//type
 	LM048_ATM_SET
 };
 

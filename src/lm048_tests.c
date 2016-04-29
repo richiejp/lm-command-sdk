@@ -12,7 +12,7 @@
 #include <string.h>
 #include "lm048lib.h"
 
-#define TESTCOUNT 31
+#define TESTCOUNT 33
 
 static void print_error(int cs, char c);
 static void setup();
@@ -180,6 +180,17 @@ TEST(parse_pin_set)
 	return strcmp("=% 1ff", buf) == 0;
 }
 
+TEST(parse_baud_set)
+{
+	char *baud = "at+baud12\x0d";
+	size_t l = strlen(baud);
+	lm048_input(baud, &l);
+	char buf[LM048_DEFAULT_PAYLOAD_LENGTH + 1];
+	lm048_packet_payload(NULL, buf, LM048_DEFAULT_PAYLOAD_LENGTH + 1);
+
+	return strcmp("12", buf) == 0;
+}
+
 TEST(init_state)
 {
 	struct lm048_parser state;
@@ -340,6 +351,40 @@ TEST(expected_one_ver)
 	return lm048_inputs(&state, version, &l) == LM048_DEQUEUED;
 }
 
+TEST(expected_one_baud_get)
+{
+	char const *const baud = "AT+BAUD?\x0D";
+	size_t la = strlen(baud);
+	char const *const baud_resp =
+		"\x0d\x0a""BAUD20\x0d\x0a""OK\x0d\x0a";
+	size_t l = strlen(baud_resp);
+
+	struct lm048_packet cmd = {
+		.type = LM048_AT_BAUD,
+		.modifier = LM048_ATM_GET
+	};
+
+	struct lm048_packet resp = {
+		.type = LM048_AT_BAUD_RESPONSE,
+		.payload = "20",
+		.payload_length = 2,
+		.payload_capacity = 3
+	};
+
+	struct lm048_packet a[100][2];
+	struct lm048_queue que = lm048_queue_init(a, 100);
+
+	struct lm048_parser state;
+	lm048_init(&state);
+	state.queue = &que;
+
+	lm048_enqueue(&que, cmd, resp);
+
+	if(lm048_inputs(&state, baud, &la) != LM048_OK){
+		return false;
+	}
+	return lm048_inputs(&state, baud_resp, &l) == LM048_DEQUEUED;
+}
 TEST(expected_one_pin_get)
 {
 	char const *const pin = "AT+PIN?\x0D";
@@ -572,6 +617,7 @@ int main(){
 		parse_pin_enable,
 		parse_pin_get,
 		parse_pin_set,
+		parse_baud_set,
 		skip_line,
 		enqueue_one,
 		enqueue_many,
@@ -579,6 +625,7 @@ int main(){
 		expected_one_echo,
 		expected_one_ver,
 		expected_one_pin_get,
+		expected_one_baud_get,
 		expected_many_echo,
 		unexpected_one,
 		queue_front_empty,

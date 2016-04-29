@@ -97,6 +97,14 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		pkt->type = LM048_AT_PIN;
 	}
 
+	action on_baud_cmd {
+		pkt->type = LM048_AT_BAUD;
+	}
+
+	action on_baud_resp {
+		pkt->type = LM048_AT_BAUD_RESPONSE;
+	}
+
 	action on_enable_mod {
 		pkt->modifier = LM048_ATM_ENABLE;
 	}
@@ -131,33 +139,36 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 	cr = '\r';
 	lf = '\n';
 	crlf = cr lf;
-
+	at = [aA][tT];
 	ok = 'OK' crlf; 
 	error = 'ERROR' crlf;
-	command_resp = (ok @on_ok_resp | error @on_error_resp);
-	
-	ver_resp = 'F/W VERSION:' ' '{1,5} 'v' @clear_payload .
-		   (digit{1,2} '.' digit{2,3}) $add_to_payload .
-		   ' '{,5} crlf ok @on_ver_resp;
-
-	value_resp := ((any - cr)+ $add_to_payload crlf ok @on_value_resp) 
-			     @!on_error %~on_completed;
-
-	responses = lf @resp_context (command_resp | ver_resp);
 
 	on = '+' @on_enable_mod;
 	off = '-' @on_disable_mod;
 	get = '?' @on_get_mod;
 	set = '=' @on_set_mod;
 
-	at = [aA][tT];
+	command_resp = (ok @on_ok_resp | error @on_error_resp);
+	value_resp := ((any - cr)+ $add_to_payload crlf ok @on_value_resp) 
+			     @!on_error %~on_completed;
+	
 	ver = [vV][eE][rR] @on_ver;
+	ver_resp = 'F/W VERSION:' ' '{1,5} 'v' @clear_payload .
+		   (digit{1,2} '.' digit{2,3}) $add_to_payload .
+		   ' '{,5} crlf ok @on_ver_resp;
+
 	pin = [pP][iI][nN] .
 		(on | off | get | 
 		 set @clear_payload .
 		 (alnum | punct | [\t\v\f ])+ @add_to_payload) @on_pin;
 
-	commands = at (cr @on_at_at | ('+' (ver | pin) cr));
+	baud = [bB][aA][uU][dD] @clear_payload .
+		(get | (digit{2} $add_to_payload %on_set_mod));
+	baud_cmd = baud @on_baud_cmd;
+	baud_resp = baud crlf ok @on_baud_resp;
+
+	responses = lf @resp_context (command_resp | ver_resp | baud_resp);
+	commands = at (cr @on_at_at | ('+' (ver | pin | baud_cmd) cr));
 
 	main := (cr* (commands | responses)) %~on_completed
 		      @!on_error;
@@ -329,8 +340,10 @@ LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
 	case LM048_AT_VALUE_RESPONSE:
 	case LM048_AT_VER:
 	case LM048_AT_VER_RESPONSE:
+	case LM048_AT_BAUD_RESPONSE:
 		return 0;
 	case LM048_AT_PIN:
+	case LM048_AT_BAUD:
 		return 1;
 	default:
 		return -1;
@@ -352,6 +365,8 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	//-Always has payload
 	case LM048_AT_VALUE_RESPONSE:
 	case LM048_AT_VER_RESPONSE:
+	case LM048_AT_BAUD:
+	case LM048_AT_BAUD_RESPONSE:
 		return 1;
 
 	//-Depends on modifier
