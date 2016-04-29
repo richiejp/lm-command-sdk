@@ -124,7 +124,7 @@ enum LM048_AT{
 	//AT+BAUD, set the baud rate
 	LM048_AT_BAUD,
 	//Baud rate query response BAUDd
-	LM048_AT_BAUD_RESPONSE
+	LM048_AT_BAUD_RESPONSE,
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
@@ -137,9 +137,10 @@ enum LM048_ATM{
 	LM048_ATM_DISABLE,
 	//AT+COMMAND?
 	LM048_ATM_GET,
-	//AT+COMMAND=<value> or AT+COMMAND<value> depending on the command
-	//type
-	LM048_ATM_SET
+	//AT+COMMAND=<value> 
+	LM048_ATM_SET,
+	//AT+COMMAND<value>
+	LM048_ATM_SET_ENUM
 };
 
 //Encapsulates a discrete AT command or response

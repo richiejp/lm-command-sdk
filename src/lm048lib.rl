@@ -105,6 +105,10 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		pkt->type = LM048_AT_BAUD_RESPONSE;
 	}
 
+	action on_reset {
+		pkt->type = LM048_AT_RESET;
+	}
+
 	action on_enable_mod {
 		pkt->modifier = LM048_ATM_ENABLE;
 	}
@@ -119,6 +123,10 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 
 	action on_set_mod {
 		pkt->modifier = LM048_ATM_SET;
+	}
+
+	action on_set_enum_mod {
+		pkt->modifier = LM048_ATM_SET_ENUM;
 	}
 
 	action add_to_payload {
@@ -163,12 +171,19 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		 (alnum | punct | [\t\v\f ])+ @add_to_payload) @on_pin;
 
 	baud = [bB][aA][uU][dD] @clear_payload .
-		(get | (digit{2} $add_to_payload %on_set_mod));
+		(get | (digit{2} $add_to_payload %on_set_enum_mod));
 	baud_cmd = baud @on_baud_cmd;
 	baud_resp = baud crlf ok @on_baud_resp;
 
+	reset = [rR][eE][sS][eE][tT] @on_reset;
+
 	responses = lf @resp_context (command_resp | ver_resp | baud_resp);
-	commands = at (cr @on_at_at | ('+' (ver | pin | baud_cmd) cr));
+	commands = at (cr @on_at_at | 
+		       ('+' (ver | 
+			     pin | 
+			     baud_cmd |
+			     reset) 
+			cr));
 
 	main := (cr* (commands | responses)) %~on_completed
 		      @!on_error;
@@ -341,6 +356,8 @@ LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
 	case LM048_AT_VER:
 	case LM048_AT_VER_RESPONSE:
 	case LM048_AT_BAUD_RESPONSE:
+	case LM048_AT_RESET:
+	case LM048_AT_ENQ:
 		return 0;
 	case LM048_AT_PIN:
 	case LM048_AT_BAUD:
@@ -360,17 +377,19 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	case LM048_AT_ERROR:
 	case LM048_AT_AT:
 	case LM048_AT_VER:
+	case LM048_AT_RESET:
+	case LM048_AT_ENQ:
 		return 0;
 
 	//-Always has payload
 	case LM048_AT_VALUE_RESPONSE:
 	case LM048_AT_VER_RESPONSE:
-	case LM048_AT_BAUD:
 	case LM048_AT_BAUD_RESPONSE:
 		return 1;
 
 	//-Depends on modifier
 	case LM048_AT_PIN:
+	case LM048_AT_BAUD:
 		break;
 	default:
 		return -1;
@@ -382,6 +401,7 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	case LM048_ATM_GET:
 		return 0;
 	case LM048_ATM_SET:
+	case LM048_ATM_SET_ENUM:
 		return 1;
 	case LM048_ATM_NONE:
 		break;
@@ -427,6 +447,15 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	case LM048_AT_PIN:
 		cmd = ATP "PIN";
 		break;
+	case LM048_AT_BAUD:
+		cmd = ATP "BAUD";
+	case LM048_AT_BAUD_RESPONSE:
+		cmd = CRLF "BAUD";
+		end = CRLF "OK" CRLF;
+	case LM048_AT_RESET:
+		cmd = ATP "RESET";
+	case LM048_AT_ENQ:
+		cmd = ATP "ENQ";
 	default:
 		*length = 0;
 		return LM048_ERROR;
@@ -445,12 +474,14 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	case LM048_ATM_SET:
 		mod = "=";
 		break;
+	case LM048_ATM_SET_ENUM:
 	case LM048_ATM_NONE:
 		break;
 	}
 
 	len = strlen(cmd) + strlen(end);
-	if(lm048_packet_has_modifier(packet))
+	if(lm048_packet_has_modifier(packet)
+	   && packet->modifier != LM048_ATM_SET_ENUM)
 		len += strlen(mod);
 	if(lm048_packet_has_payload(packet))
 		len += packet->payload_length;
@@ -462,7 +493,8 @@ lm048_write_packet(struct lm048_packet const *const packet,
 
 	*buf = '\0';
 	strcat(buf, cmd);
-	if(lm048_packet_has_modifier(packet))
+	if(lm048_packet_has_modifier(packet)
+	   && packet->modifier != LM048_ATM_SET_ENUM)
 		strcat(buf, mod);
 	if(lm048_packet_has_payload(packet))
 		strncat(buf, packet->payload, packet->payload_length);
