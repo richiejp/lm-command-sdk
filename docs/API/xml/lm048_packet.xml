@@ -97,7 +97,7 @@ from a <ref ref="lm048_packet#lm048_packet">lm048_packet</ref> ensuring the comm
       <type name="lm048_packet" qualifier=" const const *" ref="lm048_packet#lm048_packet" />
     </argument>
     <argument id="lm048_write_packet::buffer" name="buffer">
-      <doc>An array of at least &amp;lt;LM048\_MINIMUM\_WRITE\_BUFFER&amp;gt; if possible</doc>
+      <doc>An array of at least LM048_MINIMUM_WRITE_BUFFER if possible</doc>
       <type builtin="yes" name="char" qualifier=" const *" />
     </argument>
     <argument id="lm048_write_packet::length" name="length">

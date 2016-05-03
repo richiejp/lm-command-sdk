@@ -43,7 +43,19 @@ successfully parsed when the library is expecting it.
       <brief>The AT+VER firmware version response</brief>
     </enumvalue>
     <enumvalue id="LM048_AT_PIN" name="LM048_AT_PIN" value="6">
-      <brief>The AT+PIN code command</brief>
+      <brief>The AT+PIN code command which handles the BT2.0 pin code</brief>
+    </enumvalue>
+    <enumvalue id="LM048_AT_ENQ" name="LM048_AT_ENQ" value="7">
+      <brief>The settings enquiry command, not supported.</brief>
+    </enumvalue>
+    <enumvalue id="LM048_AT_RESET" name="LM048_AT_RESET" value="8">
+      <brief>AT+RESET, resets to factory defaults</brief>
+    </enumvalue>
+    <enumvalue id="LM048_AT_BAUD" name="LM048_AT_BAUD" value="9">
+      <brief>AT+BAUD, set the baud rate</brief>
+    </enumvalue>
+    <enumvalue id="LM048_AT_BAUD_RESPONSE" name="LM048_AT_BAUD_RESPONSE" value="10">
+      <brief>Baud rate query response BAUD&amp;lt;value&amp;gt;</brief>
     </enumvalue>
   </enum>
   <enum anonymous="yes" id="LM048_ATM" name="LM048_ATM">
@@ -62,6 +74,9 @@ successfully parsed when the library is expecting it.
     </enumvalue>
     <enumvalue id="LM048_ATM_SET" name="LM048_ATM_SET" value="4">
       <brief>AT+COMMAND=&amp;lt;value&amp;gt;</brief>
+    </enumvalue>
+    <enumvalue id="LM048_ATM_SET_ENUM" name="LM048_ATM_SET_ENUM" value="5">
+      <brief>AT+COMMAND&amp;lt;value&amp;gt;</brief>
     </enumvalue>
   </enum>
   <enum anonymous="yes" id="LM048_STATUS" name="LM048_STATUS">
@@ -91,17 +106,21 @@ processed</doc>
       <brief>Storage of some type is empty</brief>
     </enumvalue>
     <function id="lm048_packet_init" name="lm048_packet_init">
-      <brief>Initialize packet struct</brief>
+      <brief> Initialize packet struct with payload storage</brief>
       <return>
+        <doc><ref ref="#LM048_COMPLETED">LM048_COMPLETED</ref></doc>
         <type name="LM048_STATUS" ref="index#LM048_STATUS" />
       </return>
       <argument id="lm048_packet_init::packet" name="packet">
+        <doc>The packet to initialize</doc>
         <type name="lm048_packet" qualifier=" const *" ref="lm048_packet#lm048_packet" />
       </argument>
       <argument id="lm048_packet_init::payload" name="payload">
+        <doc>A pointer to an array which will be used to store the payload</doc>
         <type builtin="yes" name="char" qualifier=" const *" />
       </argument>
       <argument id="lm048_packet_init::payload_capacity" name="payload_capacity">
+        <doc>The number of bytes <ref ref="#lm048_packet_init::payload">payload</ref> can hold</doc>
         <type name="size_t" />
       </argument>
     </function>

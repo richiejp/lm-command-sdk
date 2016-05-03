@@ -14,34 +14,19 @@ return values.
   <coverage>
     <type documented="14" name="function" undocumented="2">
       <undocumented id="lm048_no_op" name="lm048_no_op">
-        <location column="13" file="build/lm048lib.h" line="241" />
+        <location column="13" file="build/lm048lib.h" line="251" />
       </undocumented>
       <undocumented id="lm048_no_op_e" name="lm048_no_op_e">
-        <location column="13" file="build/lm048lib.h" line="242" />
+        <location column="13" file="build/lm048lib.h" line="252" />
       </undocumented>
     </type>
     <type documented="3" name="struct" undocumented="0" />
     <type documented="3" name="enum" undocumented="0" />
-    <type documented="20" name="enumvalue" undocumented="0" />
+    <type documented="25" name="enumvalue" undocumented="0" />
     <type documented="16" name="field" undocumented="0" />
     <type documented="1" name="variable" undocumented="0" />
   </coverage>
-  <arguments>
-    <function id="lm048_queue_front" name="lm048_queue_front">
-      <location column="1" file="build/lm048lib.h" line="334" />
-      <undocumented-return />
-      <undocumented name="queue" />
-      <undocumented name="command" />
-      <undocumented name="response" />
-    </function>
-    <function id="lm048_packet_init" name="lm048_packet_init">
-      <location column="1" file="build/lm048lib.h" line="389" />
-      <undocumented-return />
-      <undocumented name="payload" />
-      <undocumented name="packet" />
-      <undocumented name="payload_capacity" />
-    </function>
-  </arguments>
+  <arguments />
   <references>
     <enumvalue id="LM048_AT_AT" name="LM048_AT_AT">
       <location column="2" file="build/lm048lib.h" line="106" />
@@ -57,32 +42,23 @@ return values.
         <ref name="crlf" />
       </doctype>
     </enumvalue>
-    <enumvalue id="LM048_ATM_SET" name="LM048_ATM_SET">
-      <location column="2" file="build/lm048lib.h" line="133" />
+    <enumvalue id="LM048_AT_BAUD_RESPONSE" name="LM048_AT_BAUD_RESPONSE">
+      <location column="2" file="build/lm048lib.h" line="127" />
       <doctype name="brief">
         <ref name="value" />
       </doctype>
     </enumvalue>
-    <function id="lm048_queue_init" name="lm048_queue_init">
-      <location column="1" file="build/lm048lib.h" line="346" />
-      <doctype component="array" name="params">
-        <ref name="lm048_packets" />
+    <enumvalue id="LM048_ATM_SET" name="LM048_ATM_SET">
+      <location column="2" file="build/lm048lib.h" line="141" />
+      <doctype name="brief">
+        <ref name="value" />
       </doctype>
-    </function>
-    <function id="lm048_write_packet" name="lm048_write_packet">
-      <location column="1" file="build/lm048lib.h" line="382" />
-      <doctype component="buffer" name="params">
-        <ref name="LM048_MINIMUM_WRITE_BUFFER" />
+    </enumvalue>
+    <enumvalue id="LM048_ATM_SET_ENUM" name="LM048_ATM_SET_ENUM">
+      <location column="2" file="build/lm048lib.h" line="143" />
+      <doctype name="brief">
+        <ref name="value" />
       </doctype>
-    </function>
-    <function id="lm048_write_front_command" name="lm048_write_front_command">
-      <location column="1" file="build/lm048lib.h" line="407" />
-      <doctype component="buffer" name="params">
-        <ref name="LM048_MINIMUM_WRITE_BUFFER" />
-      </doctype>
-      <doctype name="returns">
-        <ref name="lm048_write_packet" />
-      </doctype>
-    </function>
+    </enumvalue>
   </references>
 </report>

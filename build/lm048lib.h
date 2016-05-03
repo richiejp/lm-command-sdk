@@ -103,20 +103,33 @@ enum LM048_AT{
 	//The ERROR response
 	LM048_AT_ERROR = 1,
 	//The AT<cr> command
-	LM048_AT_AT = 2,
+	LM048_AT_AT,
 	//A common form of response containing a value.
-	//Many query/get commands respond with <crlf><value><crlf>OK
-	LM048_AT_VALUE_RESPONSE = 3,
+	//Many query/get commands respond with <crlf><value><crlf>OK.
+	//Unfortunately there is ambiguity between this response and all
+	//other types of response, so this response will only be 
+	//successfully parsed when the library is expecting it.
+	// <lm048_queue::lm048_enqueue> sets the necessary context.
+	LM048_AT_VALUE_RESPONSE,
 	//The AT+VER firmware version command
-	LM048_AT_VER = 4,
+	LM048_AT_VER,
 	//The AT+VER firmware version response
-	LM048_AT_VER_RESPONSE = 5,
-	//The AT+PIN code command
-	LM048_AT_PIN
+	LM048_AT_VER_RESPONSE,
+	//The AT+PIN code command which handles the BT2.0 pin code
+	LM048_AT_PIN,
+	//The settings enquiry command, not supported.
+	LM048_AT_ENQ,
+	//AT+RESET, resets to factory defaults
+	LM048_AT_RESET,
+	//AT+BAUD, set the baud rate
+	LM048_AT_BAUD,
+	//Baud rate query response BAUD<value>
+	LM048_AT_BAUD_RESPONSE,
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
 enum LM048_ATM{
+	//AT command does not have modifiers
 	LM048_ATM_NONE,
 	//AT+COMMAND+
 	LM048_ATM_ENABLE,
@@ -124,8 +137,10 @@ enum LM048_ATM{
 	LM048_ATM_DISABLE,
 	//AT+COMMAND?
 	LM048_ATM_GET,
-	//AT+COMMAND=<value>
-	LM048_ATM_SET
+	//AT+COMMAND=<value> 
+	LM048_ATM_SET,
+	//AT+COMMAND<value>
+	LM048_ATM_SET_ENUM
 };
 
 //Encapsulates a discrete AT command or response
@@ -195,7 +210,7 @@ struct lm048_parser {
 	//- int act;
 	//- char *ts;
 	//- char *te
-	
+
 	//Action to take when OK response is parsed
 	void (*on_ok_response)();
 
@@ -208,7 +223,7 @@ struct lm048_parser {
 	//Action to take when a command or response is parsed
 	//
 	//The default action is to break out of the parsing loop, meaning
-	//<lm048_input>(s) will return without processing anymore data.
+	// <lm048_input>(s) will return without processing anymore data.
 	//Assigning a callback will stop this behaviour, which may have
 	//unexpected effects e.g. it will sometimes stop items from being
 	//dequeued.
@@ -236,6 +251,7 @@ extern LM048_API struct lm048_parser lm048_default_state;
 LM048_LOCAL void lm048_no_op(void);
 LM048_LOCAL void lm048_no_op_e(int cs, char c);
 
+LM048_API
 /* Parse the data 
  * @state The current state and callbacks or NULL
  * @data The text/bytes to parse
@@ -254,10 +270,11 @@ LM048_LOCAL void lm048_no_op_e(int cs, char c);
  *         is fully processed. Also <LM048_DEQUEUED> and <LM048_UNEXPECTED>
  *         can occure when a queue is being used, see <lm048_queue>.
  */
-LM048_API enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
+enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
 				         char const *const data,
 				         size_t *const length);
 
+LM048_API
 /* Parse the data
  * @data The text/bytes to parse
  * @length The length of the <data>
@@ -267,9 +284,10 @@ LM048_API enum LM048_STATUS lm048_inputs(struct lm048_parser *const state,
  *
  * @return see <lm048_parser::lm048_inputs>
  */
-LM048_API enum LM048_STATUS lm048_input(char const *const data,
+enum LM048_STATUS lm048_input(char const *const data,
 					size_t *const length);
 
+LM048_API
 /* Finds the next newline (carriage return) character
  * @data The text/bytes to parse
  * @length The length of the data on input and the amount left to process on
@@ -281,24 +299,27 @@ LM048_API enum LM048_STATUS lm048_input(char const *const data,
  *
  * @return <LM048_COMPLETED> if a newline was found otherwise <LM048_OK>.
  */
-LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
+enum LM048_STATUS lm048_skip_line(char *const data,
 					    size_t *const length);
 
+LM048_API
 /* Set the parser to the begining state
  * @state A parser's state or NULL
  *
  * This sets the cs member of <state> to the start value. If <state>
  * is NULL then the default global state variable is used.
  */
-LM048_API void lm048_restart(struct lm048_parser *const state);
+void lm048_restart(struct lm048_parser *const state);
 
+LM048_API
 /* Sets the members of <lm048_parser> to safe defaults 
  * @state An uninitialised state
  *
  * This will overwrite all the members of the structure.
  */
-LM048_API void lm048_init(struct lm048_parser *const state);
+void lm048_init(struct lm048_parser *const state);
 
+LM048_API
 /* Add a command-response pair to the end of <queue>
  * @queue The queue
  * @command The command to be sent, set <lm048_packet::type> to <LM048_AT_NONE>
@@ -313,35 +334,59 @@ LM048_API void lm048_init(struct lm048_parser *const state);
  * @return <LM048_COMPLETED> on success, or <LM048_FULL> if there is no space
  *	   left in the queue.
  */
-LM048_API enum LM048_STATUS
+enum LM048_STATUS
 lm048_enqueue(struct lm048_queue *const queue,
 	      struct lm048_packet const command,
 	      struct lm048_packet const response);
 
-/* Get the command-response pair at the front of the queue*/
-LM048_API enum LM048_STATUS
+LM048_API
+/* Get the command-response pair at the front of the queue
+ * @queue The queue to fetch from
+ * @command A pointer which will be set to the command at the front of the 
+ *	    queue or NULL if queue is empty
+ * @response A ponter which will be set to the response at the front of the 
+ *	     queue or NULL if queue is empty
+ * 
+ * @return <LM048_COMPLETED> on success or <LM048_EMPTY> if queue is empty
+ */
+enum LM048_STATUS
 lm048_queue_front(struct lm048_queue const *const queue,
 		  struct lm048_packet const **command,
 		  struct lm048_packet const **response);
 
+LM048_API
 /* Initialise a new queue structure
- * @array A pointer to a two-dimensional array of <lm048_packets>
+ * @array A pointer to a two-dimensional array of <lm048_packet>s
  * @length The row count of <array>
  *
  * @return The new queue
  */
-LM048_API struct lm048_queue
+struct lm048_queue
 lm048_queue_init(struct lm048_packet (*const array)[2],
 		 size_t const length);
 
-LM048_API BOOL
-lm048_packet_has_modifier(struct lm048_packet const *const pkt);
+LM048_API
+/* Check's if packet type has modifiers
+ * @pkt The packet to check
+ *
+ * @return 0 for no, 1 for yes and -1 for error
+ */
+BOOL lm048_packet_has_modifier(struct lm048_packet const *const pkt);
 
-LM048_API BOOL
-lm048_packet_has_payload(struct lm048_packet const *const pkt);
+LM048_API
+/* Check's if packet should have a payload
+ * @pkt The packet to check
+ *
+ * Inspects the packet's type and modifiers to determine if there should be
+ * a payload value. **Does not check if payload data is actually present**.
+ *
+ * @return 0 for no, 1 for yes and -1 for error
+ */
+BOOL lm048_packet_has_payload(struct lm048_packet const *const pkt);
 
+LM048_API
 /* Writes the bytes comprising an AT command or response to <buffer>
- * @buffer An array of at least <LM048_MINIMUM_WRITE_BUFFER> if possible
+ * @buffer An array of at least LM048_MINIMUM_WRITE_BUFFER if possible
  * @length The length of the buffer on input and how many bytes were used/needed
  *	   on output
  * @packet The packet structure describing the AT command/response to be written
@@ -352,19 +397,28 @@ lm048_packet_has_payload(struct lm048_packet const *const pkt);
  * @return <LM048_COMPLETED> on success, <LM048_FULL> if there was not enough
  *	   space in <buffer> and <LM048_ERROR> if <packet> is invalid.
  */
-LM048_API enum LM048_STATUS
+enum LM048_STATUS
 lm048_write_packet(struct lm048_packet const *const packet,
 		   char *const buffer,
 		   size_t *const length);
 
-LM048_API enum LM048_STATUS
+LM048_API
+/* Initialize packet struct with payload storage
+ * @packet The packet to initialize
+ * @payload A pointer to an array which will be used to store the payload
+ * @payload_capacity The number of bytes <payload> can hold
+ *
+ * @return <LM048_COMPLETED>
+ */
+enum LM048_STATUS
 lm048_packet_init(struct lm048_packet *const packet,
 		  char *const payload,
 		  size_t payload_capacity);
 
+LM048_API
 /* Write the command at the front of <queue> to <buffer>
  * @queue The queue to use or NULL to use the default one
- * @buffer An array of at least <LM048_MINIMUM_WRITE_BUFFER> if possible
+ * @buffer An array of at least LM048_MINIMUM_WRITE_BUFFER if possible
  * @length The length of the <buffer> on input and how many bytes were
  *	   used/needed on output
  *
@@ -372,13 +426,14 @@ lm048_packet_init(struct lm048_packet *const packet,
  *
  * TODO Commands expecting no response should probably be dequeued
  *
- * @return see <lm048_queue_front> and <lm048_write_packet>
+ * @return see <lm048_queue_front> and <lm048_packet::lm048_write_packet>
  */
-LM048_API enum LM048_STATUS
+enum LM048_STATUS
 lm048_write_front_command(struct lm048_queue const *const queue,
 			 char *const buffer,
 			 size_t *const length);
 
+LM048_API
 /* Copies the <lm048_packet::payload> to a null terminated string
  * @packet The packet to get the payload from or NULL to use the
  *	   <lm048_parser::current> packet in the <lm048_default_state> 
@@ -395,7 +450,7 @@ lm048_write_front_command(struct lm048_queue const *const queue,
  *	   to do and <LM048_FULL> if there is not enough space in the
  *	   target buffer
  */
-LM048_API enum LM048_STATUS
+enum LM048_STATUS
 lm048_packet_payload(struct lm048_packet const *const packet,
 		     char *const buffer,
 		     size_t const length);
