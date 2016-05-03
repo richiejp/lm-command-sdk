@@ -7,7 +7,7 @@ Currently there are separate libraries for the LM95x/LM96x and the LM048/LM780/L
 
 We hope to provide sample and template applications for the following languages and platforms resources permitting
 
-- QT Windows & Linux
+- QT Windows & Linux (Partially done)
 - Linux POSIX C
 - Win32 VC++
 - Windows .Net C#
@@ -43,7 +43,7 @@ The library itself has no dependencies except the C standard library, however it
 - Ragel: http://colm.net/open-source/ragel
 - A C compiler: e.g. gcc, clang, msvc; Clang is the default
 
-To build the whole library from the Ragel sources up, run `scons -Q` in the root directory.
+To build the whole library from the Ragel sources up, run `scons` in the root directory.
 *If you are not using Clang, set the `CC` variable in src/SConscript*
 
 There are also some optional dependencies and build options:
@@ -51,16 +51,16 @@ There are also some optional dependencies and build options:
 - cldoc: https://jessevdk.github.io/cldoc/index.html 
 - scan-build: http://clang-analyzer.llvm.org/scan-build.html
 
-`scons -Q docs` will build the API documentation and `scons -Q docs/API` will copy it from /build/docs to /docs/API. The documentation is built with cldoc.
+`scons -Q docs` will build the API documentation. The documentation is built with cldoc.
 
 You can perform Clang's static analyses of the project with `scan-build -V --use-cc clang scons -Q --analyze`
 
-The test suite can be ran with `scons -Q check`.
+The test suite can be ran with `scons check-lm048`.
 
 Amusements
 ----------
 
-Install the xdot program on your sytem and run `ragel -Vp src/lm951lib.rl | xdot` from the SDK folder. This will show you an interactive graph of the state machine produced by Ragel for parsing the AT commands.
+Install the xdot program on your sytem and run `ragel -Vp -Satcmd src/lm951lib.rl | xdot` from the SDK folder. This will show you an interactive graph of the state machine produced by Ragel for parsing the AT commands.
 
 Licensing
 ---------
