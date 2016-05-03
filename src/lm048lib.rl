@@ -311,6 +311,7 @@ static enum LM048_STATUS dequeue(struct lm048_queue *const queue,
 	}
 
 	if(lm048_packet_has_payload(expected)
+	   && expected->payload_length != 0
 	   && (expected->payload_length != received->payload_length
 	       || strncmp(expected->payload,
 			  received->payload,

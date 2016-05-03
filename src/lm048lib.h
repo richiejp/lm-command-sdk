@@ -164,7 +164,7 @@ struct lm048_packet {
 	//The number of meaningful bytes in <payload>
 	size_t payload_length;
 
-	//The amount of memory, in bytes, allocated to the <payload> array
+	//The amount of memory, in bytes, allocated to the <payload> buffer
 	size_t payload_capacity;
 };
 
@@ -268,6 +268,9 @@ LM048_API
  * have been registered and whether there are any items in the 
  * <lm048_parser::queue>.
  *
+ * You can find out which packet has just been parsed by inspecting
+ * <lm048_parser::current> (also see <lm048_packet::lm048_packet_payload>).
+ *
  * @return Either <LM048_OK> when no items were fully completed, but no
  *         errors occurred either, <LM048_ERROR> when invalid data or some
  *         other problem is encountered and <LM048_COMPLETED> when an item
@@ -283,8 +286,8 @@ LM048_API
  * @data The text/bytes to parse
  * @length The length of the <data>
  *
- * Performs the same purpose as <lm048_parser::lm048_inputs>, but with 
- * automatically managed state.
+ * Identical to <lm048_parser::lm048_inputs>, but always uses
+ * <lm048_default_state> as the <lm048_parser> state.
  *
  * @return see <lm048_parser::lm048_inputs>
  */
@@ -333,7 +336,16 @@ LM048_API
  *
  * Adds a <command> to send and an expected <response> to the end of a <queue>.
  * Multiple requests and associated expected responses can be queued up for
- * later processing.
+ * later processing in a first in, first out order.
+ *
+ * When setting the expected response: if the response will have a payload,
+ * but you do not know what it will be, then set <lm048_packet::payload_length>
+ * to zero. For example you may wish to query the device's Bluetooth address
+ * with AT+ADDR? in which case you will not know the address before hand.
+ *
+ * Once commands are in the queue call <lm048_queue::lm048_write_front_command>
+ * to write the command to a buffer and <lm048_input> afterwards on the 
+ * response data.
  *
  * @return <LM048_COMPLETED> on success, or <LM048_FULL> if there is no space
  *	   left in the queue.
