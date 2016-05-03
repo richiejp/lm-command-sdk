@@ -237,7 +237,7 @@ LM048_API enum LM048_STATUS lm048_packet_init(struct lm048_packet *const pkt,
 				size_t payload_capacity)
 {
 	pkt->type = LM048_AT_NONE;
-	pkt->modifier = LM048_ATM_GET;
+	pkt->modifier = LM048_ATM_NONE;
 	pkt->payload = payload;
 	pkt->payload_length = 0;
 	pkt->payload_capacity = payload_capacity;

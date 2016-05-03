@@ -123,7 +123,7 @@ enum LM048_AT{
 	LM048_AT_RESET,
 	//AT+BAUD, set the baud rate
 	LM048_AT_BAUD,
-	//Baud rate query response BAUDd
+	//Baud rate query response BAUD<value>
 	LM048_AT_BAUD_RESPONSE,
 };
 
@@ -340,7 +340,15 @@ lm048_enqueue(struct lm048_queue *const queue,
 	      struct lm048_packet const response);
 
 LM048_API
-/* Get the command-response pair at the front of the queue*/
+/* Get the command-response pair at the front of the queue
+ * @queue The queue to fetch from
+ * @command A pointer which will be set to the command at the front of the 
+ *	    queue or NULL if queue is empty
+ * @response A ponter which will be set to the response at the front of the 
+ *	     queue or NULL if queue is empty
+ * 
+ * @return <LM048_COMPLETED> on success or <LM048_EMPTY> if queue is empty
+ */
 enum LM048_STATUS
 lm048_queue_front(struct lm048_queue const *const queue,
 		  struct lm048_packet const **command,
@@ -348,7 +356,7 @@ lm048_queue_front(struct lm048_queue const *const queue,
 
 LM048_API
 /* Initialise a new queue structure
- * @array A pointer to a two-dimensional array of <lm048_packets>
+ * @array A pointer to a two-dimensional array of <lm048_packet>s
  * @length The row count of <array>
  *
  * @return The new queue
@@ -378,7 +386,7 @@ BOOL lm048_packet_has_payload(struct lm048_packet const *const pkt);
 
 LM048_API
 /* Writes the bytes comprising an AT command or response to <buffer>
- * @buffer An array of at least <LM048_MINIMUM_WRITE_BUFFER> if possible
+ * @buffer An array of at least LM048_MINIMUM_WRITE_BUFFER if possible
  * @length The length of the buffer on input and how many bytes were used/needed
  *	   on output
  * @packet The packet structure describing the AT command/response to be written
@@ -395,7 +403,13 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		   size_t *const length);
 
 LM048_API
-//Initialize packet struct
+/* Initialize packet struct with payload storage
+ * @packet The packet to initialize
+ * @payload A pointer to an array which will be used to store the payload
+ * @payload_capacity The number of bytes <payload> can hold
+ *
+ * @return <LM048_COMPLETED>
+ */
 enum LM048_STATUS
 lm048_packet_init(struct lm048_packet *const packet,
 		  char *const payload,
@@ -404,7 +418,7 @@ lm048_packet_init(struct lm048_packet *const packet,
 LM048_API
 /* Write the command at the front of <queue> to <buffer>
  * @queue The queue to use or NULL to use the default one
- * @buffer An array of at least <LM048_MINIMUM_WRITE_BUFFER> if possible
+ * @buffer An array of at least LM048_MINIMUM_WRITE_BUFFER if possible
  * @length The length of the <buffer> on input and how many bytes were
  *	   used/needed on output
  *
@@ -412,7 +426,7 @@ LM048_API
  *
  * TODO Commands expecting no response should probably be dequeued
  *
- * @return see <lm048_queue_front> and <lm048_write_packet>
+ * @return see <lm048_queue_front> and <lm048_packet::lm048_write_packet>
  */
 enum LM048_STATUS
 lm048_write_front_command(struct lm048_queue const *const queue,
