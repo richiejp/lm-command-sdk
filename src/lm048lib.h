@@ -125,6 +125,10 @@ enum LM048_AT{
 	LM048_AT_BAUD,
 	//Baud rate query response BAUD<value>
 	LM048_AT_BAUD_RESPONSE,
+	//Bluetooth connection event
+	LM048_AT_CONNECT_EVNT,
+	//Bluetooth disconnection event
+	LM048_AT_DISCONNECT_EVNT
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
@@ -454,7 +458,6 @@ enum LM048_STATUS
 lm048_packet_payload(struct lm048_packet const *const packet,
 		     char *const buffer,
 		     size_t const length);
-
 #ifdef __cplusplus
 }
 #endif

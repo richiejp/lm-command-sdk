@@ -129,6 +129,14 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		pkt->modifier = LM048_ATM_SET_ENUM;
 	}
 
+	action on_connect_evnt {
+		pkt->type = LM048_AT_CONNECT_EVNT;
+	}
+
+	action on_disconnect_evnt {
+		pkt->type = LM048_AT_DISCONNECT_EVNT;
+	}
+
 	action add_to_payload {
 		payload_add(pkt, *p);
 	}
@@ -177,7 +185,18 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 
 	reset = [rR][eE][sS][eE][tT] @on_reset;
 
-	responses = lf @resp_context (command_resp | ver_resp | baud_resp);
+	bluetooth_addr = 
+		(alnum{4} '-' alnum{2} '-' alnum{6}) $add_to_payload; 
+	connect_evnt = 'CONNECT' ' '{0,2} '"' @clear_payload
+		       bluetooth_addr  '"' crlf @on_connect_evnt;
+	disconnect_evnt = 'DISCONNECT' ' '{0,2} '"' @clear_payload
+			bluetooth_addr '"' crlf @on_disconnect_evnt;
+
+	responses = lf @resp_context (command_resp | 
+				      ver_resp | 
+				      baud_resp |
+				      connect_evnt |
+				      disconnect_evnt);
 	commands = at (cr @on_at_at | 
 		       ('+' (ver | 
 			     pin | 
@@ -358,6 +377,8 @@ LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
 	case LM048_AT_BAUD_RESPONSE:
 	case LM048_AT_RESET:
 	case LM048_AT_ENQ:
+	case LM048_AT_CONNECT_EVNT:
+	case LM048_AT_DISCONNECT_EVNT:
 		return 0;
 	case LM048_AT_PIN:
 	case LM048_AT_BAUD:
@@ -385,6 +406,8 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	case LM048_AT_VALUE_RESPONSE:
 	case LM048_AT_VER_RESPONSE:
 	case LM048_AT_BAUD_RESPONSE:
+	case LM048_AT_CONNECT_EVNT:
+	case LM048_AT_DISCONNECT_EVNT:
 		return 1;
 
 	//-Depends on modifier
