@@ -21,6 +21,8 @@ Directories
 -----------
 
 - examples: Contains examples for various platforms
+	* QT/SetPin: A simple, annotated program which sets an LM048's pin code
+	* QT/SerialConsole: A partially finished serial console app
 - build: Contains the library files 
 - src: Contains the Ragel sources which the library is generated from
 - docs: Contains documentation, including a library overview and API reference

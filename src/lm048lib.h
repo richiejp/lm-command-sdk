@@ -107,9 +107,10 @@ enum LM048_AT{
 	//A common form of response containing a value.
 	//Many query/get commands respond with <crlf><value><crlf>OK.
 	//Unfortunately there is ambiguity between this response and all
-	//other types of response, so this response will only be 
+	//other types of response and events, so this response will only be 
 	//successfully parsed when the library is expecting it.
-	// <lm048_queue::lm048_enqueue> sets the necessary context.
+	//Using <lm048_queue::lm048_enqueue> will ensure that value responses
+	//are correctly interpreted as such.
 	LM048_AT_VALUE_RESPONSE,
 	//The AT+VER firmware version command
 	LM048_AT_VER,
@@ -125,10 +126,58 @@ enum LM048_AT{
 	LM048_AT_BAUD,
 	//Baud rate query response BAUD<value>
 	LM048_AT_BAUD_RESPONSE,
+	LM048_AT_STOP_BITS,
+	LM048_AT_STOP_BITS_RESPONSE,
+	LM048_AT_PAR,
+	LM048_AT_PAR_RESPONSE,
+	LM048_AT_FLOW,
+	LM048_AT_FLOW_RESPONSE,
+	LM048_AT_ECHO,
+	LM048_AT_ECHO_RESPONSE,
+	LM048_AT_RESP,
+	LM048_AT_RESP_RESPONSE,
+	LM048_AT_MODEM,
+	LM048_AT_MODEM_RESPONSE,
+	LM048_AT_ROLE,
+	LM048_AT_ROLE_RESPONSE,
+	LM048_AT_ADDR,
+	LM048_AT_RSSI,
+	LM048_AT_NAME,
+	LM048_AT_DCOV,
+	LM048_AT_DCOV_RESPONSE,
+	LM048_AT_CONN,
+	LM048_AT_DROP,
+	LM048_AT_BOND,
+	LM048_AT_ACON,
+	LM048_AT_ACON_RESPONSE,
+	LM048_AT_ESC,
+	LM048_AT_ESC_RESPONSE,
+	LM048_AT_AUTO,
+	LM048_AT_RCFG,
+	LM048_AT_RCFG_RESPONSE,
+	LM048_AT_SLEEP,
+	LM048_AT_SLEEP_RESPONSE,
+	LM048_AT_DPIN,
+	LM048_AT_DPIN_RESPONSE,
+	LM048_AT_IOTYPE,
+	LM048_AT_IOTYPE_RESPONSE,
+	LM048_AT_MITM,
+	LM048_AT_MITM_RESPONSE,
+	LM048_AT_PASSCFM,
+	LM048_AT_PASSKEY,
+	//Used on the command-response queue to instruct the parser to expect
+	//an event of any type. Usually an error is thrown when an event is 
+	//received.
+	LM048_AT_ANY_EVNT,
 	//Bluetooth connection event
 	LM048_AT_CONNECT_EVNT,
+	LM048_AT_CONNECT_FAIL_EVNT,
 	//Bluetooth disconnection event
-	LM048_AT_DISCONNECT_EVNT
+	LM048_AT_DISCONNECT_EVNT,
+	LM048_AT_PINREQ_EVNT,
+	LM048_AT_PASSKEYCFM_EVNT,
+	LM048_AT_PASSKEYDSP_EVNT,
+	LM048_AT_PASSKEYREQ_EVNT
 };
 
 //Enumeration of AT command modifiers i.e +, -, ? and =
@@ -144,7 +193,31 @@ enum LM048_ATM{
 	//AT+COMMAND=<value> 
 	LM048_ATM_SET,
 	//AT+COMMAND<value>
-	LM048_ATM_SET_ENUM
+	LM048_ATM_BAUD_1200,
+	LM048_ATM_BAUD_2400,
+	LM048_ATM_BAUD_4800,
+	LM048_ATM_BAUD_9600,
+	LM048_ATM_BAUD_19200,
+	LM048_ATM_BAUD_38400,
+	LM048_ATM_BAUD_57600,
+	LM048_ATM_BAUD_115200,
+	LM048_ATM_BAUD_230400,
+	LM048_ATM_BAUD_460800,
+	LM048_ATM_BAUD_921600,
+	LM048_ATM_ONE_STOPBIT,
+	LM048_ATM_TWO_STOPBIT,
+	LM048_ATM_NO_PARITY,
+	LM048_ATM_ODD_PARITY,
+	LM048_ATM_EVEN_PARITY,
+	LM048_ATM_LOCAL_LOOPBACK,
+	LM048_ATM_REMOTE_TRANSFER,
+	LM048_ATM_MASTER,
+	LM048_ATM_SLAVE,
+	LM048_ATM_DISPLAY_ONLY,
+	LM048_ATM_DISPLAY_YES_NO,
+	LM048_ATM_KEYBOARD_ONLY,
+	LM048_ATM_NO_DISPLAY_KEYBOARD,
+	LM048_ATM_REJECT_BT21
 };
 
 //Encapsulates a discrete AT command or response

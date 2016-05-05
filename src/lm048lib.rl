@@ -50,18 +50,20 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 	return LM048_OK;
 }
 
+#define PTYPE(t) pkt->type = t
+#define PMOD(m) pkt->modifier = m
 %%{
 	machine atcmd;
 
 	access state->;
 
 	action on_ok_resp {
-		pkt->type = LM048_AT_OK;
+		PTYPE(LM048_AT_OK);
 		state->on_ok_response();
 	}
 
 	action on_error_resp {
-		pkt->type = LM048_AT_ERROR;
+		PTYPE(LM048_AT_ERROR);
 		state->on_error_response();
 	}
 
@@ -77,78 +79,51 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		}
 	}
 
-	action on_at_at {
-		pkt->type = LM048_AT_AT;
-	}
+	action on_at_at { PTYPE(LM048_AT_AT); }
+	action on_ver { PTYPE(LM048_AT_VER); }
+	action on_ver_resp { PTYPE(LM048_AT_VER_RESPONSE); }
+	action on_value_resp { PTYPE(LM048_AT_VALUE_RESPONSE); }
+	action on_pin { PTYPE(LM048_AT_PIN); }
+	action on_baud_cmd { PTYPE(LM048_AT_BAUD); }
+	action on_baud_resp { PTYPE(LM048_AT_BAUD_RESPONSE); }
+	action on_reset { PTYPE(LM048_AT_RESET); }
+	action on_stop_bits_cmd { PTYPE(LM048_AT_STOP_BITS); }
+	action on_stop_bits_resp { PTYPE(LM048_AT_STOP_BITS_RESPONSE); }
+	action on_par_cmd { PTYPE(LM048_AT_PAR); }
+	action on_par_resp { PTYPE(LM048_AT_PAR_RESPONSE); }
+	action on_flow_cmd { PTYPE(LM048_AT_FLOW); }
+	action on_flow_resp { PTYPE(LM048_AT_FLOW_RESPONSE); }
+	action on_echo_cmd { PTYPE(LM048_AT_ECHO); }
+	action on_echo_resp { PTYPE(LM048_AT_ECHO_RESPONSE); }
+	action on_resp_cmd { PTYPE(LM048_AT_RESP); }
+	action on_resp_resp { PTYPE(LM048_AT_RESP_RESP); }
+	action on_modem_cmd { PTYPE(LM048_AT_MODEM); }
+	action on_modem_resp { PTYPE(LM048_AT_MODEM_RESP); }
+	action on_role_cmd { PTYPE(LM048_AT_ROLE); }
+	action on_role_resp { PTYPE(LM048_AT_ROLE_RESP); }
 
-	action on_ver {
-		pkt->type = LM048_AT_VER;
-	}
+	action on_enable_mod { PMOD(LM048_ATM_ENABLE); }
+	action on_disable_mod { PMOD(LM048_ATM_DISABLE); }
+	action on_get_mod { PMOD(LM048_ATM_GET); }
+	action on_set_mod { PMOD(LM048_ATM_SET); }
 
-	action on_ver_resp {
-		pkt->type = LM048_AT_VER_RESPONSE;
-	}
+	action on_connect_evnt { PTYPE(LM048_AT_CONNECT_EVNT); }
+	action on_disconnect_evnt { PTYPE(LM048_AT_DISCONNECT_EVNT); }
 
-	action on_value_resp {
-		pkt->type = LM048_AT_VALUE_RESPONSE;
-	}
-
-	action on_pin {
-		pkt->type = LM048_AT_PIN;
-	}
-
-	action on_baud_cmd {
-		pkt->type = LM048_AT_BAUD;
-	}
-
-	action on_baud_resp {
-		pkt->type = LM048_AT_BAUD_RESPONSE;
-	}
-
-	action on_reset {
-		pkt->type = LM048_AT_RESET;
-	}
-
-	action on_enable_mod {
-		pkt->modifier = LM048_ATM_ENABLE;
-	}
-
-	action on_disable_mod {
-		pkt->modifier = LM048_ATM_DISABLE;
-	}
-
-	action on_get_mod {
-		pkt->modifier = LM048_ATM_GET;
-	}
-
-	action on_set_mod {
-		pkt->modifier = LM048_ATM_SET;
-	}
-
-	action on_set_enum_mod {
-		pkt->modifier = LM048_ATM_SET_ENUM;
-	}
-
-	action on_connect_evnt {
-		pkt->type = LM048_AT_CONNECT_EVNT;
-	}
-
-	action on_disconnect_evnt {
-		pkt->type = LM048_AT_DISCONNECT_EVNT;
-	}
-
-	action add_to_payload {
-		payload_add(pkt, *p);
-	}
-
-	action clear_payload {
-		pkt->payload_length = 0;
-	}
+	action add_to_payload { payload_add(pkt, *p); }
+	action clear_payload { pkt->payload_length = 0; }
 
 	action resp_context {
-		if(resp != NULL && resp->type == LM048_AT_VALUE_RESPONSE){
-			pkt->payload_length = 0;
-			fgoto value_resp;
+		if(resp != NULL){
+			switch(resp->type){
+			case LM048_AT_VALUE_RESPONSE:
+				pkt->payload_length = 0;
+				fgoto value_resp;
+			case LM048_AT_ANY_EVNT:
+			case LM048_AT_CONNECT_EVNT:
+			case LM048_AT_DISCONNECT_EVNT:
+				fgoto events;
+			}
 		}
 	}
 
@@ -165,8 +140,6 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 	set = '=' @on_set_mod;
 
 	command_resp = (ok @on_ok_resp | error @on_error_resp);
-	value_resp := ((any - cr)+ $add_to_payload crlf ok @on_value_resp) 
-			     @!on_error %~on_completed;
 	
 	ver = [vV][eE][rR] @on_ver;
 	ver_resp = 'F/W VERSION:' ' '{1,5} 'v' @clear_payload .
@@ -179,24 +152,74 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		 (alnum | punct | [\t\v\f ])+ @add_to_payload) @on_pin;
 
 	baud = [bB][aA][uU][dD] @clear_payload .
-		(get | (digit{2} $add_to_payload %on_set_enum_mod));
+		(get |
+		 '10' @{ PMOD(LM048_ATM_BAUD_1200); } |
+		 '11' @{ PMOD(LM048_ATM_BAUD_2400); } |
+		 '12' @{ PMOD(LM048_ATM_BAUD_4800); } |
+		 '13' @{ PMOD(LM048_ATM_BAUD_9600); } |
+		 '14' @{ PMOD(LM048_ATM_BAUD_19200); } |
+		 '15' @{ PMOD(LM048_ATM_BAUD_38400); } |
+		 '16' @{ PMOD(LM048_ATM_BAUD_57600); } |
+		 '17' @{ PMOD(LM048_ATM_BAUD_115200); } |
+		 '18' @{ PMOD(LM048_ATM_BAUD_230400); } |
+		 '19' @{ PMOD(LM048_ATM_BAUD_460800); } |
+		 '20' @{ PMOD(LM048_ATM_BAUD_921600); });
+
 	baud_cmd = baud @on_baud_cmd;
 	baud_resp = baud crlf ok @on_baud_resp;
 
 	reset = [rR][eE][sS][eE][tT] @on_reset;
 
+	stop_bits = [sS][tT][oO][pP] @clear_payload .
+		(get | 
+		 '1' @{ PMOD(LM048_ATM_ONE_STOPBIT); } |
+		 '2' @{ PMOD(LM048_ATM_TWO_STOPBIT); });
+	stop_bits_cmd = stop_bits @on_stop_bits_cmd;
+	stop_bits_resp = stop_bits crlf ok @on_stop_bits_resp;
+
+	par = [pP][aA][rR] @clear_payload .
+		(get | ([012] $add_to_payload %on_set_enum_mod));
+
+	flow = [fF][lL][oO][wW] (get | on | off); 
+	flow_cmd = flow @on_flow_cmd;
+	flow_resp = flow crlf ok @on_flow_resp;
+
+	echo = [eE][cC][hH][oO] (get | on | off);
+	echo_cmd = echo @on_echo_cmd;
+	echo_resp = echo crlf ok @on_echo_resp;
+
+	resp = [rR][eE][sS][pP] (get | on | off);
+	resp_cmd = resp @on_resp_cmd;
+	resp_resp = resp crlf ok @on_resp_resp;
+
+	modem = [mM][oO][dD][eE][mM] @clear_payload 
+		(get | off | ([LR] $add_to_payload %on_set_enum_mod));
+	modem_cmd = modem @on_modem_cmd;
+	modem_resp = modem crlf ok @on_modem_resp;
+
+	role = [rR][oO][lL][eE] @clear_payload 
+		(get | ([MS] $add_to_payload %on_set_enum_mod));
+	role_cmd = role @on_role_cmd;
+	role_resp = role crlf ok @on_role_resp;
+
 	bluetooth_addr = 
 		(alnum{4} '-' alnum{2} '-' alnum{6}) $add_to_payload; 
+
 	connect_evnt = 'CONNECT' ' '{0,2} '"' @clear_payload
 		       bluetooth_addr  '"' crlf @on_connect_evnt;
 	disconnect_evnt = 'DISCONNECT' ' '{0,2} '"' @clear_payload
 			bluetooth_addr '"' crlf @on_disconnect_evnt;
 
+	value_resp := ((any - cr)+ $add_to_payload crlf ok @on_value_resp) 
+			     @!on_error %~on_completed;
+	events := (connect_evnt | disconnect_evnt) 
+			@!on_error %~on_completed;
+
+	#The @resp_context action can jump to value_resp or events
 	responses = lf @resp_context (command_resp | 
 				      ver_resp | 
-				      baud_resp |
-				      connect_evnt |
-				      disconnect_evnt);
+				      baud_resp);
+
 	commands = at (cr @on_at_at | 
 		       ('+' (ver | 
 			     pin | 
@@ -269,6 +292,7 @@ LM048_API enum LM048_STATUS lm048_enqueue(struct lm048_queue *const queue,
 				struct lm048_packet const response)
 {
 	struct lm048_queue *que = queue;
+
 	if(que == NULL){
 		que = &default_queue;
 	}
@@ -375,7 +399,6 @@ LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
 	case LM048_AT_VALUE_RESPONSE:
 	case LM048_AT_VER:
 	case LM048_AT_VER_RESPONSE:
-	case LM048_AT_BAUD_RESPONSE:
 	case LM048_AT_RESET:
 	case LM048_AT_ENQ:
 	case LM048_AT_CONNECT_EVNT:
@@ -383,6 +406,7 @@ LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
 		return 0;
 	case LM048_AT_PIN:
 	case LM048_AT_BAUD:
+	case LM048_AT_BAUD_RESPONSE:
 		return 1;
 	default:
 		return -1;
@@ -401,19 +425,61 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	case LM048_AT_VER:
 	case LM048_AT_RESET:
 	case LM048_AT_ENQ:
+	case LM048_AT_BAUD:
+	case LM048_AT_BAUD_RESPONSE:
+	case LM048_AT_PAR:
+	case LM048_AT_PAR_RESPONSE:
+	case LM048_AT_FLOW:
+	case LM048_AT_FLOW_RESPONSE:
+	case LM048_AT_ECHO:
+	case LM048_AT_ECHO_RESPONSE:
+	case LM048_AT_RESP:
+	case LM048_AT_RESP_RESPONSE:
+	case LM048_AT_MODEM:
+	case LM048_AT_MODEM_RESPONSE:
+	case LM048_AT_ROLE:
+	case LM048_AT_ROLE_RESPONSE:
+	case LM048_AT_DCOV:
+	case LM048_AT_DCOV_RESPONSE:
+	case LM048_AT_DROP:
+	case LM048_AT_ACON:
+	case LM048_AT_ACON_RESPONSE:
+	case LM048_AT_ESC:
+	case LM048_AT_ESC_RESPONSE:
+	case LM048_AT_AUTO:
+	case LM048_AT_RCFG:
+	case LM048_AT_RCFG_RESPONSE:
+	case LM048_AT_SLEEP:
+	case LM048_AT_SLEEP_RESPONSE:
+	case LM048_AT_DPIN:
+	case LM048_AT_DPIN_RESPONSE:
+	case LM048_AT_IOTYPE:
+	case LM048_AT_IOTYPE_RESPONSE:
+	case LM048_AT_MITM:
+	case LM048_AT_MITM_RESPONSE:
+	case LM048_AT_CONNECT_FAIL_EVNT:
+	case LM048_AT_RSSI:
 		return 0;
 
 	//-Always has payload
 	case LM048_AT_VALUE_RESPONSE:
 	case LM048_AT_VER_RESPONSE:
-	case LM048_AT_BAUD_RESPONSE:
 	case LM048_AT_CONNECT_EVNT:
 	case LM048_AT_DISCONNECT_EVNT:
+	case LM048_AT_CONN:
+	case LM048_AT_PASSCFM:
+	case LM048_AT_PASSKEY:
+	case LM048_AT_PINREQ_EVNT:
+	case LM048_AT_PASSKEYCFM_EVNT:
+	case LM048_AT_PASSKEYDSP_EVNT:
+	case LM048_AT_PASSKEYREQ_EVN:
 		return 1;
 
 	//-Depends on modifier
 	case LM048_AT_PIN:
-	case LM048_AT_BAUD:
+	case LM048_AT_ADDR:
+	case LM048_AT_NAME:
+	case LM048_AT_BOND:
 		break;
 	default:
 		return -1;
@@ -425,10 +491,7 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	case LM048_ATM_GET:
 		return 0;
 	case LM048_ATM_SET:
-	case LM048_ATM_SET_ENUM:
 		return 1;
-	case LM048_ATM_NONE:
-		break;
 	}
 	return -1;
 }
@@ -473,13 +536,58 @@ lm048_write_packet(struct lm048_packet const *const packet,
 		break;
 	case LM048_AT_BAUD:
 		cmd = ATP "BAUD";
+		break;
 	case LM048_AT_BAUD_RESPONSE:
 		cmd = CRLF "BAUD";
 		end = CRLF "OK" CRLF;
+		break;
 	case LM048_AT_RESET:
 		cmd = ATP "RESET";
+		break;
 	case LM048_AT_ENQ:
 		cmd = ATP "ENQ";
+		break;
+	case LM048_AT_STOP_BITS:
+		cmd = ATP "STOP";
+		break;
+	case LM048_AT_STOP_BITS_RESPONSE:
+	case LM048_AT_PAR:
+	case LM048_AT_PAR_RESPONSE:
+	case LM048_AT_FLOW:
+	case LM048_AT_FLOW_RESPONSE:
+	case LM048_AT_ECHO:
+	case LM048_AT_ECHO_RESPONSE:
+	case LM048_AT_RESP:
+	case LM048_AT_RESP_RESPONSE:
+	case LM048_AT_MODEM:
+	case LM048_AT_MODEM_RESPONSE:
+	case LM048_AT_ROLE:
+	case LM048_AT_ROLE_RESPONSE:
+	case LM048_AT_ADDR:
+	case LM048_AT_RSSI:
+	case LM048_AT_NAME:
+	case LM048_AT_DCOV:
+	case LM048_AT_DCOV_RESPONSE:
+	case LM048_AT_CONN:
+	case LM048_AT_DROP:
+	case LM048_AT_BOND:
+	case LM048_AT_ACON:
+	case LM048_AT_ACON_RESPONSE:
+	case LM048_AT_ESC:
+	case LM048_AT_ESC_RESPONSE:
+	case LM048_AT_AUTO:
+	case LM048_AT_RCFG:
+	case LM048_AT_RCFG_RESPONSE:
+	case LM048_AT_SLEEP:
+	case LM048_AT_SLEEP_RESPONSE:
+	case LM048_AT_DPIN:
+	case LM048_AT_DPIN_RESPONSE:
+	case LM048_AT_IOTYPE:
+	case LM048_AT_IOTYPE_RESPONSE:
+	case LM048_AT_MITM:
+	case LM048_AT_MITM_RESPONSE:
+	case LM048_AT_PASSCFM:
+	case LM048_AT_PASSKEY:
 	default:
 		*length = 0;
 		return LM048_ERROR;
@@ -498,14 +606,77 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	case LM048_ATM_SET:
 		mod = "=";
 		break;
-	case LM048_ATM_SET_ENUM:
+	case LM048_ATM_BAUD_1200:
+		mod = "10";
+		break;
+	case LM048_ATM_BAUD_2400:
+		mod = "11";
+		break;
+	case LM048_ATM_BAUD_4800:
+		mod = "12";
+		break;
+	case LM048_ATM_BAUD_9600:
+		mod = "13";
+		break;
+	case LM048_ATM_BAUD_19200:
+		mod = "14";
+		break;
+	case LM048_ATM_BAUD_38400:
+		mod = "15";
+		break;
+	case LM048_ATM_BAUD_57600:
+		mod = "16";
+		break;
+	case LM048_ATM_BAUD_115200:
+		mod = "17";
+		break;
+	case LM048_ATM_BAUD_230400:
+		mod = "18";
+		break;
+	case LM048_ATM_BAUD_460800:
+		mod = "19";
+		break;
+	case LM048_ATM_BAUD_921600:
+		mod = "20";
+		break;
+	case LM048_ATM_NO_PARITY:
+	case LM048_ATM_DISPLAY_ONLY:
+		mod = "0";
+		break;
+	case LM048_ATM_ONE_STOPBIT:
+	case LM048_ATM_ODD_PARITY:
+	case LM048_ATM_DISPLAY_YES_NO:
+		mod = "1";
+		break;
+	case LM048_ATM_TWO_STOPBIT:
+	case LM048_ATM_EVEN_PARITY:
+	case LM048_ATM_KEYBOARD_ONLY:
+		mod = "2";
+		break;
+	case LM048_ATM_NO_DISPLAY_KEYBOARD:
+		mod = "3";
+		break;
+	case LM048_ATM_REJECT_BT2:
+		mod = "4";
+		break;
+	case LM048_ATM_LOCAL_LOOPBACK:
+		mod = "L";
+		break;
+	case LM048_ATM_REMOTE_TRANSFER:
+		mod = "R";
+		break;
+	case LM048_ATM_MASTER:
+		mod = "M";
+		break;
+	case LM048_ATM_SLAVE:
+		mod = "S";
+		break;
 	case LM048_ATM_NONE:
 		break;
 	}
 
 	len = strlen(cmd) + strlen(end);
-	if(lm048_packet_has_modifier(packet)
-	   && packet->modifier != LM048_ATM_SET_ENUM)
+	if(lm048_packet_has_modifier(packet))
 		len += strlen(mod);
 	if(lm048_packet_has_payload(packet))
 		len += packet->payload_length;
@@ -517,8 +688,7 @@ lm048_write_packet(struct lm048_packet const *const packet,
 
 	*buf = '\0';
 	strcat(buf, cmd);
-	if(lm048_packet_has_modifier(packet)
-	   && packet->modifier != LM048_ATM_SET_ENUM)
+	if(lm048_packet_has_modifier(packet))
 		strcat(buf, mod);
 	if(lm048_packet_has_payload(packet))
 		strncat(buf, packet->payload, packet->payload_length);
