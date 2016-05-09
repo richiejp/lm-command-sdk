@@ -231,8 +231,56 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		 ((alnum (alnum | ' ' | '-'){0,14} alnum) | alnum) 
 		 $add_to_payload) %on_name_cmd; 
 
+	dcov = [dD][cC][oO][vV] (get | on | off);
+	dcov_cmd = dcov %on_dcov_cmd;
+	dcov_resp = dcov crlf ok @on_dcov_resp;
+
 	bluetooth_addr = 
-		(alnum{4} '-' alnum{2} '-' alnum{6}) $add_to_payload; 
+		(xdigit{4} '-' xdigit{2} '-' xdigit{6}) $add_to_payload; 
+	#AT+CONNn for find results not supported yet
+	conn_cmd = [cC][oO][nN][nN] @{ PMOD(LM048_ATM_NONE); }
+		(set @clear_payload bluetooth_addr)?;
+	
+	drop_cmd = [dD][rR][oO][pP] %on_drop_cmd;
+
+	bond = [bB][oO][nN][dD] (off | get | (set bluetooth_addr));
+	bond_cmd = bond %on_bond_cmd;
+
+	acon = [aA][cC][oO][nN] (on | off | get);
+	acon_cmd = acon %on_acon_cmd;
+	acon_resp = acon crlf ok @on_acon_resp;
+
+	esc = [eE][sS][cC] (on | off | get);
+	esc_cmd = esc %on_esc_cmd;
+	esc_resp = esc crlf ok @on_esc_resp;
+
+	auto_cmd = [aA][uU][tT][oO] %on_auto_cmd;
+
+	rcfg = [rR][cC][fF][gG] (on | off | get);
+	rcfg_cmd = rcfg %on_rcfg_cmd;
+	rcfg_resp = rcfg crlf ok @on_rcfg_resp;
+
+	sleep = [sS][lL][eE][eE][pP] (on | off | get);
+	sleep_cmd = sleep %on_sleep_cmd;
+	sleep_resp = sleep crlf ok @on_sleep_resp;
+
+	dpin = [dD][pP][iI][nN] (on | off | get |
+		(set bluetooth_addr ',' alnum{4,8}));
+	dpin_cmd = dpin %on_dpin_cmd;
+	dpin_resp = dpin crlf ok @on_dpin_resp;
+
+	iotype = [iI][oO][tT][yY][pP][eE] (get | 
+		'0' @{ PMOD(LM048_ATM_DISPLAY_ONLY); } |
+		'1' @{ PMOD(LM048_ATM_DISPLAY_YES_NO); } |
+		'2' @{ PMOD(LM048_ATM_KEYBOARD_ONLY); } |
+		'3' @{ PMOD(LM048_ATM_NO_DISPLAY_KEYBOARD); } |
+		'4' @{ PMOD(LM048_ATM_REJECT_BT21); });
+	iotype_cmd = iotype %on_iotype_cmd;
+	iotype_resp = iotype crlf ok @on_iotype_resp;
+
+	mitm = [mM][iI][tT][mM] (on | off | get);
+	mitm_cmd = mitm %on_mitm_cmd;
+	mitm_resp = mitm crlf ok @on_mitm_resp;
 
 	connect_evnt = 'CONNECT' ' '{0,2} '"' @clear_payload
 		       bluetooth_addr  '"' crlf @on_connect_evnt;
@@ -254,7 +302,15 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 				      echo_resp |
 				      modem_resp |
 				      role_resp |
-				      rssi_resp );
+				      rssi_resp |
+				      dcov_resp |
+				      acon_resp |
+				      esc_resp |
+				      rcfg_resp |
+				      sleep_resp |
+				      dpin_resp |
+				      iotype_resp |
+				      mitm_resp);
 
 	commands = at (cr @on_at_at | 
 		       ('+' (ver | 
@@ -270,7 +326,19 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 			     role_cmd |
 			     addr_cmd |
 			     rssi_cmd |
-			     name_cmd) 
+			     name_cmd |
+			     dcov_cmd |
+			     conn_cmd |
+			     drop_cmd |
+			     bond_cmd |
+			     acon_cmd |
+			     esc_cmd |
+			     auto_cmd |
+			     rcfg_cmd |
+			     sleep_cmd |
+			     dpin_cmd |
+			     iotype_cmd |
+			     mitm_cmd) 
 			cr));
 
 	main := (cr* (commands | responses)) %~on_completed @!on_error;
@@ -446,12 +514,58 @@ LM048_API int lm048_packet_has_modifier(struct lm048_packet const *const pkt)
 	case LM048_AT_VER_RESPONSE:
 	case LM048_AT_RESET:
 	case LM048_AT_ENQ:
+	case LM048_AT_ADDR:
+	case LM048_AT_DROP:
+	case LM048_AT_AUTO:
+	case LM048_AT_RSSI:
+	case LM048_AT_RSSI_RESPONSE:
+	case LM048_AT_ANY_EVNT:
 	case LM048_AT_CONNECT_EVNT:
+	case LM048_AT_CONNECT_FAIL_EVNT:
 	case LM048_AT_DISCONNECT_EVNT:
+	case LM048_AT_PINREQ_EVNT:
+	case LM048_AT_PASSKEYCFM_EVNT:
+	case LM048_AT_PASSKEYDSP_EVNT:
+	case LM048_AT_PASSKEYREQ_EVNT:
 		return 0;
 	case LM048_AT_PIN:
 	case LM048_AT_BAUD:
 	case LM048_AT_BAUD_RESPONSE:
+	case LM048_AT_STOP_BITS:
+	case LM048_AT_STOP_BITS_RESPONSE:
+	case LM048_AT_PAR:
+	case LM048_AT_PAR_RESPONSE:
+	case LM048_AT_FLOW:
+	case LM048_AT_FLOW_RESPONSE:
+	case LM048_AT_ECHO:
+	case LM048_AT_ECHO_RESPONSE:
+	case LM048_AT_RESP:
+	case LM048_AT_RESP_RESPONSE:
+	case LM048_AT_MODEM:
+	case LM048_AT_MODEM_RESPONSE:
+	case LM048_AT_ROLE:
+	case LM048_AT_ROLE_RESPONSE:
+	case LM048_AT_NAME:
+	case LM048_AT_DCOV:
+	case LM048_AT_DCOV_RESPONSE:
+	case LM048_AT_CONN:
+	case LM048_AT_BOND:
+	case LM048_AT_ACON:
+	case LM048_AT_ACON_RESPONSE:
+	case LM048_AT_ESC:
+	case LM048_AT_ESC_RESPONSE:
+	case LM048_AT_RCFG:
+	case LM048_AT_RCFG_RESPONSE:
+	case LM048_AT_SLEEP:
+	case LM048_AT_SLEEP_RESPONSE:
+	case LM048_AT_DPIN:
+	case LM048_AT_DPIN_RESPONSE:
+	case LM048_AT_IOTYPE:
+	case LM048_AT_IOTYPE_RESPONSE:
+	case LM048_AT_MITM:
+	case LM048_AT_MITM_RESPONSE:
+	case LM048_AT_PASSCFM:
+	case LM048_AT_PASSKEY:
 		return 1;
 	default:
 		return -1;
