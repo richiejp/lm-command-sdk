@@ -185,10 +185,9 @@ TEST(parse_baud_set)
 	char *baud = "at+baud12\x0d";
 	size_t l = strlen(baud);
 	lm048_input(baud, &l);
-	char buf[LM048_DEFAULT_PAYLOAD_LENGTH + 1];
-	lm048_packet_payload(NULL, buf, LM048_DEFAULT_PAYLOAD_LENGTH + 1);
 
-	return strcmp("12", buf) == 0;
+	return lm048_default_state.current.modifier
+		== LM048_ATM_BAUD_4800;
 }
 
 TEST(init_state)
@@ -366,9 +365,7 @@ TEST(expected_one_baud_get)
 
 	struct lm048_packet resp = {
 		.type = LM048_AT_BAUD_RESPONSE,
-		.payload = "20",
-		.payload_length = 2,
-		.payload_capacity = 3
+		.modifier = LM048_ATM_BAUD_921600
 	};
 
 	struct lm048_packet a[100][2];
@@ -385,6 +382,7 @@ TEST(expected_one_baud_get)
 	}
 	return lm048_inputs(&state, baud_resp, &l) == LM048_DEQUEUED;
 }
+
 TEST(expected_one_pin_get)
 {
 	char const *const pin = "AT+PIN?\x0D";

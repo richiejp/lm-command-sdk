@@ -96,11 +96,15 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 	action on_echo_cmd { PTYPE(LM048_AT_ECHO); }
 	action on_echo_resp { PTYPE(LM048_AT_ECHO_RESPONSE); }
 	action on_resp_cmd { PTYPE(LM048_AT_RESP); }
-	action on_resp_resp { PTYPE(LM048_AT_RESP_RESP); }
+	action on_resp_resp { PTYPE(LM048_AT_RESP_RESPONSE); }
 	action on_modem_cmd { PTYPE(LM048_AT_MODEM); }
-	action on_modem_resp { PTYPE(LM048_AT_MODEM_RESP); }
+	action on_modem_resp { PTYPE(LM048_AT_MODEM_RESPONSE); }
 	action on_role_cmd { PTYPE(LM048_AT_ROLE); }
-	action on_role_resp { PTYPE(LM048_AT_ROLE_RESP); }
+	action on_role_resp { PTYPE(LM048_AT_ROLE_RESPONSE); }
+	action on_addr_cmd { PTYPE(LM048_AT_ADDR); }
+	action on_rssi_cmd { PTYPE(LM048_AT_RSSI); }
+	action on_rssi_resp { PTYPE(LM048_AT_RSSI_RESPONSE); }
+	action on_name_cmd { PTYPE(LM048_AT_NAME); }
 
 	action on_enable_mod { PMOD(LM048_ATM_ENABLE); }
 	action on_disable_mod { PMOD(LM048_ATM_DISABLE); }
@@ -141,7 +145,7 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 
 	command_resp = (ok @on_ok_resp | error @on_error_resp);
 	
-	ver = [vV][eE][rR] @on_ver;
+	ver = [vV][eE][rR] %on_ver;
 	ver_resp = 'F/W VERSION:' ' '{1,5} 'v' @clear_payload .
 		   (digit{1,2} '.' digit{2,3}) $add_to_payload .
 		   ' '{,5} crlf ok @on_ver_resp;
@@ -149,7 +153,7 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 	pin = [pP][iI][nN] .
 		(on | off | get | 
 		 set @clear_payload .
-		 (alnum | punct | [\t\v\f ])+ @add_to_payload) @on_pin;
+		 (alnum | punct | [\t\v\f ])+ @add_to_payload) %on_pin;
 
 	baud = [bB][aA][uU][dD] @clear_payload .
 		(get |
@@ -165,42 +169,67 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 		 '19' @{ PMOD(LM048_ATM_BAUD_460800); } |
 		 '20' @{ PMOD(LM048_ATM_BAUD_921600); });
 
-	baud_cmd = baud @on_baud_cmd;
+	baud_cmd = baud %on_baud_cmd;
 	baud_resp = baud crlf ok @on_baud_resp;
 
-	reset = [rR][eE][sS][eE][tT] @on_reset;
+	reset = [rR][eE][sS][eE][tT] %on_reset;
 
-	stop_bits = [sS][tT][oO][pP] @clear_payload .
+	stop_bits = [sS][tT][oO][pP] .
 		(get | 
 		 '1' @{ PMOD(LM048_ATM_ONE_STOPBIT); } |
 		 '2' @{ PMOD(LM048_ATM_TWO_STOPBIT); });
-	stop_bits_cmd = stop_bits @on_stop_bits_cmd;
+	stop_bits_cmd = stop_bits %on_stop_bits_cmd;
 	stop_bits_resp = stop_bits crlf ok @on_stop_bits_resp;
 
-	par = [pP][aA][rR] @clear_payload .
-		(get | ([012] $add_to_payload %on_set_enum_mod));
+	par = [pP][aA][rR] .
+		(get | 
+		 '0' @{ PMOD(LM048_ATM_NO_PARITY); } |
+		 '1' @{ PMOD(LM048_ATM_ODD_PARITY); } |
+		 '2' @{ PMOD(LM048_ATM_EVEN_PARITY); });
+	par_cmd = par %on_par_cmd;
+	par_resp = par crlf ok @on_par_resp;
 
 	flow = [fF][lL][oO][wW] (get | on | off); 
-	flow_cmd = flow @on_flow_cmd;
+	flow_cmd = flow %on_flow_cmd;
 	flow_resp = flow crlf ok @on_flow_resp;
 
 	echo = [eE][cC][hH][oO] (get | on | off);
-	echo_cmd = echo @on_echo_cmd;
+	echo_cmd = echo %on_echo_cmd;
 	echo_resp = echo crlf ok @on_echo_resp;
 
 	resp = [rR][eE][sS][pP] (get | on | off);
-	resp_cmd = resp @on_resp_cmd;
+	resp_cmd = resp %on_resp_cmd;
 	resp_resp = resp crlf ok @on_resp_resp;
 
 	modem = [mM][oO][dD][eE][mM] @clear_payload 
-		(get | off | ([LR] $add_to_payload %on_set_enum_mod));
-	modem_cmd = modem @on_modem_cmd;
+		(get | off |
+		 [lL] @{ PMOD(LM048_ATM_LOCAL_LOOPBACK); } |
+		 [rR] @{ PMOD(LM048_ATM_REMOTE_TRANSFER); });
+	modem_cmd = modem %on_modem_cmd;
 	modem_resp = modem crlf ok @on_modem_resp;
 
 	role = [rR][oO][lL][eE] @clear_payload 
-		(get | ([MS] $add_to_payload %on_set_enum_mod));
-	role_cmd = role @on_role_cmd;
+		(get |
+		 [mM] @{ PMOD(LM048_ATM_MASTER); } |
+		 [sS] @{ PMOD(LM048_ATM_SLAVE); });
+	role_cmd = role %on_role_cmd;
 	role_resp = role crlf ok @on_role_resp;
+
+	addr_cmd = [aA][dD][dD][rR] get %on_addr_cmd;
+
+	#at+find? would go here, but it is not supported yet.
+
+	rssi_cmd = [rR][sS][sS][iI] %on_rssi_cmd;
+	rssi_resp = 'STRONG' @{ PMOD(LM048_ATM_STRONG_RSSI); } |
+		    'AVERAGE' @{ PMOD(LM048_ATM_AVERAGE_RSSI); } |
+		    'WEAK' @{ PMOD(LM048_ATM_WEAK_RSSI); } .
+		    crlf ok @on_rssi_resp;
+
+	name_cmd = [nN][aA][mM][eE] 
+		(get | 
+		 set @clear_payload 
+		 ((alnum (alnum | ' ' | '-'){0,14} alnum) | alnum) 
+		 $add_to_payload) %on_name_cmd; 
 
 	bluetooth_addr = 
 		(alnum{4} '-' alnum{2} '-' alnum{6}) $add_to_payload; 
@@ -218,17 +247,33 @@ LM048_API enum LM048_STATUS lm048_skip_line(char *const data,
 	#The @resp_context action can jump to value_resp or events
 	responses = lf @resp_context (command_resp | 
 				      ver_resp | 
-				      baud_resp);
+				      baud_resp |
+				      stop_bits_resp |
+				      par_resp |
+				      flow_resp |
+				      echo_resp |
+				      modem_resp |
+				      role_resp |
+				      rssi_resp );
 
 	commands = at (cr @on_at_at | 
 		       ('+' (ver | 
 			     pin | 
 			     baud_cmd |
-			     reset) 
+			     reset | 
+			     stop_bits_cmd |
+			     par_cmd |
+			     flow_cmd |
+			     echo_cmd |
+			     resp_cmd |
+			     modem_cmd |
+			     role_cmd |
+			     addr_cmd |
+			     rssi_cmd |
+			     name_cmd) 
 			cr));
 
-	main := (cr* (commands | responses)) %~on_completed
-		      @!on_error;
+	main := (cr* (commands | responses)) %~on_completed @!on_error;
 	
 	write data;
 }%%
@@ -472,7 +517,7 @@ LM048_API int lm048_packet_has_payload(struct lm048_packet const *const pkt)
 	case LM048_AT_PINREQ_EVNT:
 	case LM048_AT_PASSKEYCFM_EVNT:
 	case LM048_AT_PASSKEYDSP_EVNT:
-	case LM048_AT_PASSKEYREQ_EVN:
+	case LM048_AT_PASSKEYREQ_EVNT:
 		return 1;
 
 	//-Depends on modifier
@@ -656,7 +701,7 @@ lm048_write_packet(struct lm048_packet const *const packet,
 	case LM048_ATM_NO_DISPLAY_KEYBOARD:
 		mod = "3";
 		break;
-	case LM048_ATM_REJECT_BT2:
+	case LM048_ATM_REJECT_BT21:
 		mod = "4";
 		break;
 	case LM048_ATM_LOCAL_LOOPBACK:
